@@ -179,7 +179,7 @@
   const G = {
     pt: [
       ['Quem é o craque?', 'Descubra o jogador a partir da temporada, da liga e das estatísticas.'],
-      ['Lista Ballon d’Or', 'Complete o top 10 da Bola de Ouro de um ano entre 1990 e 2025.'],
+      ['Lista Ballon d’Or', 'Complete o top 10 da Bola de Ouro de um ano entre 1990 e 2026.'],
       ['FUT10 Wordle', 'Adivinhe o nome do jogador letra por letra — vale qualquer palavra.'],
       ['Descubra o card', 'Cinco dicas para descobrir qual é a carta do FIFA.'],
       ['Futebol grid', 'Preencha o 3×3 com jogadores que cruzam clube e seleção.'],
@@ -192,7 +192,7 @@
     ],
     en: [
       ['Quem é o craque?', 'Find the player from the season, league and stats.'],
-      ['Lista Ballon d’Or', 'Complete the Ballon d’Or top 10 of a year between 1990 and 2025.'],
+      ['Lista Ballon d’Or', 'Complete the Ballon d’Or top 10 of a year between 1990 and 2026.'],
       ['FUT10 Wordle', "Guess the player's name letter by letter — any word counts."],
       ['Descubra o card', 'Five hints to find the FIFA card.'],
       ['Futebol grid', 'Fill the 3×3 with players matching club and nation.'],
@@ -205,7 +205,7 @@
     ],
     es: [
       ['Quem é o craque?', 'Descubre al jugador por la temporada, la liga y sus números.'],
-      ['Lista Ballon d’Or', 'Completa el top 10 del Balón de Oro de un año entre 1990 y 2025.'],
+      ['Lista Ballon d’Or', 'Completa el top 10 del Balón de Oro de un año entre 1990 y 2026.'],
       ['FUT10 Wordle', 'Adivina el nombre del jugador letra a letra — vale cualquier palabra.'],
       ['Descubra o card', 'Cinco pistas para descubrir la carta de FIFA.'],
       ['Futebol grid', 'Rellena el 3×3 con jugadores que cruzan club y selección.'],
