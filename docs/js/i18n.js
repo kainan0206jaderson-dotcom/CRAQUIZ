@@ -249,6 +249,11 @@
   };
 
   // português é o padrão; outro idioma só se a pessoa escolher nos botões (escolha guardada em 'idioma')
+  // mata-mata do Draft (09/11/2026) e Wordle com letras livres
+  Object.assign(T.pt, { knBracket: 'Mata-mata', knR16: 'Oitavas de final', knQF: 'Quartas de final', knSF: 'Semifinal', knF: 'Final', knYou: 'Seu time', knOpp: '(adversário)', knOppTeam: 'Time adversário', knPlay: 'Jogar partida', knWon: 'Venceu, passa', knLost: 'Perdeu, cai', knPens: 'pênaltis', knChamp: 'Campeão do mata-mata!', knOut: 'Eliminado no mata-mata.', knHint: 'Vence quem tiver a maior pontuação draft. Empate: pênaltis.' });
+  Object.assign(T.en, { knBracket: 'Knockout', knR16: 'Round of 16', knQF: 'Quarter-finals', knSF: 'Semi-finals', knF: 'Final', knYou: 'Your team', knOpp: '(opponent)', knOppTeam: 'Opponent team', knPlay: 'Play match', knWon: 'Won, advances', knLost: 'Lost, out', knPens: 'penalties', knChamp: 'Knockout champions!', knOut: 'Knocked out.', knHint: 'The higher draft score wins. Draw: penalties.' });
+  Object.assign(T.es, { knBracket: 'Eliminatoria', knR16: 'Octavos de final', knQF: 'Cuartos de final', knSF: 'Semifinal', knF: 'Final', knYou: 'Tu equipo', knOpp: '(rival)', knOppTeam: 'Equipo rival', knPlay: 'Jugar partido', knWon: 'Ganó, avanza', knLost: 'Perdió, queda fuera', knPens: 'penaltis', knChamp: '¡Campeón de la eliminatoria!', knOut: 'Eliminado de la eliminatoria.', knHint: 'Gana la mayor puntuación draft. Empate: penaltis.' });
+
   MF.lang = (function () {
     const l = MF.load ? MF.load('idioma', 'pt') : 'pt';
     return T[l] ? l : 'pt';

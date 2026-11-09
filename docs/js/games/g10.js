@@ -7,7 +7,10 @@
    anos em grandes ligas e prêmios (não são notas de videogame).
    Dificuldade (desde 15/10/2026): Fácil = clubes famosos e 3 trocas; Normal = famosos + campeões da Champions, 2 trocas;
    Difícil = campeões da Champions e da Europa League + clubes conhecidos da 1ª divisão, 1 troca; Lendário = clubes menores, sem trocas.
-   Busca sem ajuda: aparecem todos os jogadores da base; escolher quem nunca jogou no clube da rodada = 1 erro (3 erros = fim). */
+   Busca sem ajuda: aparecem todos os jogadores da base; escolher quem nunca jogou no clube da rodada = 1 erro (3 erros = fim).
+   Mata-mata (desde 09/11/2026): com os 11 escalados, o time entra num mata-mata de 4 rodadas (oitavas, quartas, semi, final).
+   Cada adversário é outro time montado a partir de um clube sorteado do mesmo nível. Vale a pontuação draft (nota + química):
+   a maior passa, a menor cai; empate vai para os pênaltis. Campeão = vence as 4. */
 (function () {
   'use strict';
   const MF = window.MF, h = MF.h, t = (k) => MF.t(k);
@@ -39,6 +42,13 @@
   const REROLLS = { easy: 3, normal: 2, hard: 1, legend: 0 };
   const fits = (p, pos) => (NEAR[pos] || [pos]).includes(p.pos) || p.allpos.some((a) => (NEAR[pos] || [pos]).includes(a));
   const line = (pos) => MF.line(pos);
+  // mata-mata: 4 rodadas a partir das oitavas; cada adversário é montado para ter a pontuação-alvo da rodada (t)
+  const KN = [
+    { k: 'knR16', t: 145 },
+    { k: 'knQF', t: 160 },
+    { k: 'knSF', t: 172 },
+    { k: 'knF', t: 182 },
+  ];
 
   // clubes sorteáveis por dificuldade: quantidade de jogadores relevantes que passaram por ele (base principal)
   // 15/10/2026: no Draft os critérios novos já valem hoje (pedido do usuário), não só a partir de 16/10
@@ -105,12 +115,58 @@
     return L[MF.lang] || L.pt;
   }
 
+  // time adversário: parte dos jogadores vem de um clube sorteado (química alta) e o resto de outros clubes do nível
+  // (química menor). Assim a pontuação varia e pode ser calibrada para cada rodada.
+  function oppXI(formKey, pool, rnd) {
+    const { P } = MF.data;
+    const F = FORMS[formKey].s;
+    const lists = (c) => (MF.data.byClubAll || MF.data.byClub)[c] || [];
+    const anchor = lists(pool[Math.floor(rnd() * pool.length)]);
+    if (!anchor.length) return null;
+    const fromAnchor = Math.round(rnd() * 11);
+    const used = new Set();
+    const pickFrom = (list, pos) => {
+      const ok = list.filter((x) => !used.has(x) && fits(P[x], pos));
+      return ok.length ? ok[Math.floor(rnd() * ok.length)] : null;
+    };
+    const team = F.map(([pos], k) => {
+      let i = null;
+      if (k < fromAnchor) i = pickFrom(anchor, pos);
+      for (let tries = 0; i == null && tries < 12; tries++) i = pickFrom(lists(pool[Math.floor(rnd() * pool.length)]), pos);
+      if (i == null) i = pickFrom(anchor, pos) ?? anchor.find((x) => !used.has(x)) ?? null;
+      if (i != null) used.add(i);
+      return i;
+    });
+    return team.includes(null) ? null : team;
+  }
+  // monta o caminho do mata-mata: um adversário por rodada, o time sorteado mais perto da pontuação-alvo daquela rodada
+  function makeKnockout(st, pool, seed) {
+    const rnd = MF.rng(seed + ':kn');
+    const { P } = MF.data;
+    const path = [];
+    KN.forEach((rd) => {
+      let best = null;
+      for (let i = 0; i < 240; i++) {
+        const team = oppXI(st.form, pool, rnd);
+        if (!team) continue;
+        const r = rate(team, st.form);
+        const d = Math.abs(r.score - rd.t) + rnd() * 3;
+        if (!best || d < best.d) best = { d, team, score: r.score, ovr: r.ovr, chem: r.chem };
+      }
+      if (best) {
+        const top = best.team.map((x) => P[x]).sort((a, b) => b.r - a.r).slice(0, 3).map((x) => x.n);
+        path.push({ team: best.team, score: best.score, ovr: best.ovr, chem: best.chem, top, coin: rnd() < 0.5 });
+      }
+    });
+    st.kn = { path, res: [] };
+  }
+
   MF.registerGame({
     num: 10, slug: 'draft-club',
     rules: {
-      pt: ['Escolha 1 de 5 formações. Em cada rodada um clube é sorteado: toque na posição que quiser e digite um jogador que já passou por esse clube — lenda ou atual. A busca mostra todos os jogadores da base: se escolher alguém que nunca jogou no clube, conta 1 erro; no 3º erro o draft acaba.', 'As linhas entre vizinhos mostram a química: verde = já jogaram num mesmo clube, ou mesma seleção e mesma liga; laranja = mesma seleção ou mesma liga; vermelho = nada em comum. Fora da posição, o jogador perde química. Toque num jogador escalado e depois noutra posição para trocá-los.', 'Pontuação draft = nota do time + química (até 100). As notas são do MUNDOFUT10 (valor de mercado, seleção, anos em grandes ligas e prêmios).', 'Fácil: só clubes famosos e 3 trocas de clube. Normal: os famosos e os campeões da Champions, 2 trocas. Difícil: campeões da Champions e da Europa League e clubes conhecidos da 1ª divisão, 1 troca. Lendário: clubes menores e nenhuma troca. Vence quem completar os 11. Ajuda: uma vez por partida, sugere um jogador do clube da rodada.'],
-      en: ['Pick 1 of 5 formations. Each round a club is drawn: tap the position you want and type a player who ever played for that club — legend or current. The search lists every player in the database: picking someone who never played there is a miss; 3 misses end the draft.', 'Lines between neighbours show chemistry: green = they shared a club, or same nation and league; orange = same nation or league; red = nothing in common. Out of position, a player loses chemistry. Tap a player, then another position, to swap them.', 'Draft score = team rating + chemistry (up to 100). Ratings are MUNDOFUT10’s own (market value, caps, years in big leagues and awards).', 'Easy: famous clubs only and 3 club rerolls. Normal: the famous ones plus Champions League winners, 2 rerolls. Hard: Champions League and Europa League winners and well-known top-flight clubs, 1 reroll. Legendary: smaller clubs and no rerolls. Complete the XI to win. Help: once per game, suggests a player from the club of the round.'],
-      es: ['Elige 1 de 5 formaciones. En cada ronda se sortea un club: toca la posición que quieras y escribe un jugador que haya pasado por ese club — leyenda o actual. La búsqueda muestra a todos los jugadores de la base: si eliges a alguien que nunca jugó allí, cuenta 1 error; con 3 errores termina el draft.', 'Las líneas entre vecinos muestran la química: verde = compartieron club, o misma selección y liga; naranja = misma selección o liga; rojo = nada en común. Fuera de posición, el jugador pierde química. Toca un jugador y luego otra posición para cambiarlos.', 'Puntuación draft = media del equipo + química (hasta 100). Las medias son de MUNDOFUT10 (valor de mercado, selección, años en grandes ligas y premios).', 'Fácil: solo clubes famosos y 3 cambios de club. Normal: los famosos y los campeones de la Champions, 2 cambios. Difícil: campeones de la Champions y la Europa League y clubes conocidos de primera, 1 cambio. Legendario: clubes más pequeños y sin cambios. Completa el once para ganar. Ayuda: una vez por partida, sugiere un jugador del club de la ronda.'],
+      pt: ['Escolha 1 de 5 formações. Em cada rodada um clube é sorteado: toque na posição que quiser e digite um jogador que já passou por esse clube — lenda ou atual. A busca mostra todos os jogadores da base: se escolher alguém que nunca jogou no clube, conta 1 erro; no 3º erro o draft acaba.', 'As linhas entre vizinhos mostram a química: verde = já jogaram num mesmo clube, ou mesma seleção e mesma liga; laranja = mesma seleção ou mesma liga; vermelho = nada em comum. Fora da posição, o jogador perde química. Toque num jogador escalado e depois noutra posição para trocá-los.', 'Pontuação draft = nota do time + química (até 100). As notas são do MUNDOFUT10 (valor de mercado, seleção, anos em grandes ligas e prêmios).', 'Fácil: só clubes famosos e 3 trocas de clube. Normal: os famosos e os campeões da Champions, 2 trocas. Difícil: campeões da Champions e da Europa League e clubes conhecidos da 1ª divisão, 1 troca. Lendário: clubes menores e nenhuma troca. Ajuda: uma vez por partida, sugere um jogador do clube da rodada.', 'Mata-mata: com os 11 escalados, seu time entra num mata-mata de 4 rodadas, começando nas oitavas. Em cada partida, a pontuação draft do seu time é comparada à do adversário: a maior passa, a menor cai (empate vai para os pênaltis). Campeão = vence as 4.'],
+      en: ['Pick 1 of 5 formations. Each round a club is drawn: tap the position you want and type a player who ever played for that club — legend or current. The search lists every player in the database: picking someone who never played there is a miss; 3 misses end the draft.', 'Lines between neighbours show chemistry: green = they shared a club, or same nation and league; orange = same nation or league; red = nothing in common. Out of position, a player loses chemistry. Tap a player, then another position, to swap them.', 'Draft score = team rating + chemistry (up to 100). Ratings are MUNDOFUT10’s own (market value, caps, years in big leagues and awards).', 'Easy: famous clubs only and 3 club rerolls. Normal: the famous ones plus Champions League winners, 2 rerolls. Hard: Champions League and Europa League winners and well-known top-flight clubs, 1 reroll. Legendary: smaller clubs and no rerolls. Help: once per game, suggests a player from the club of the round.', 'Knockout: with all 11 picked, your team enters a 4-round knockout, starting at the round of 16. In each match your draft score is compared to the opponent’s: the higher one advances, the lower one goes out (a draw goes to penalties). Champions = win all 4.'],
+      es: ['Elige 1 de 5 formaciones. En cada ronda se sortea un club: toca la posición que quieras y escribe un jugador que haya pasado por ese club — leyenda o actual. La búsqueda muestra a todos los jugadores de la base: si eliges a alguien que nunca jugó allí, cuenta 1 error; con 3 errores termina el draft.', 'Las líneas entre vecinos muestran la química: verde = compartieron club, o misma selección y liga; naranja = misma selección o liga; rojo = nada en común. Fuera de posición, el jugador pierde química. Toca un jugador y luego otra posición para cambiarlos.', 'Puntuación draft = media del equipo + química (hasta 100). Las medias son de MUNDOFUT10 (valor de mercado, selección, años en grandes ligas y premios).', 'Fácil: solo clubes famosos y 3 cambios de club. Normal: los famosos y los campeones de la Champions, 2 cambios. Difícil: campeones de la Champions y la Europa League y clubes conocidos de primera, 1 cambio. Legendario: clubes más pequeños y sin cambios. Ayuda: una vez por partida, sugiere un jugador del club de la ronda.', 'Eliminatoria: con los 11 elegidos, tu equipo entra en una eliminatoria de 4 rondas, desde los octavos. En cada partido, la puntuación draft de tu equipo se compara con la del rival: la mayor avanza, la menor cae (empate va a penaltis). Campeón = gana las 4.'],
     },
     options: [MF.levelOpt(), MF.timerOpt([0, 300, 180, 120])],
     preview() { return h('div', { class: 'pv-draft' }, FORMS['4-3-3'].s.map(([, x, y]) => h('b', { style: { left: x + '%', top: y + '%' } }))); },
@@ -146,8 +202,9 @@
     const lvl = MF.level(st);
     const day = MF.today();
     const seed = 'fd5:' + day + ':' + lvl;
-    if (st.v !== 4) Object.assign(st, { v: 4, phase: 'form', form: null, forms: null, team: Array(11).fill(null), from: Array(11).fill(null), round: 0, rerolls: 0, drawn: [], miss: 0, wrong: [] });
+    if (st.v !== 4) Object.assign(st, { v: 4, phase: 'form', form: null, forms: null, team: Array(11).fill(null), from: Array(11).fill(null), round: 0, rerolls: 0, drawn: [], miss: 0, wrong: [], kn: null });
     if (st.miss == null) { st.miss = 0; st.wrong = []; }
+    if (st.kn === undefined) st.kn = null;
     if (!st.forms) st.forms = MF.sample(Object.keys(FORMS), 5, MF.rng(seed + ':forms'));
     const pools = clubPools();
     const pool = pools[lvl] || pools.normal;
@@ -165,7 +222,6 @@
     const side = h('div', { class: 'fd-side' });
     const sheet = h('div', { class: 'fd-sheet', hidden: true });
     const roundBox = h('div', { class: 'fd-round', 'aria-live': 'polite' });
-    const finishBtn = h('button', { class: 'btn btn-primary fd-finish', type: 'button', onclick: () => end(true) }, t('fdFinish'));
     const flag = h('button', { class: 'btn btn-ghost flag-btn', type: 'button', 'aria-label': t('giveUp'), title: t('giveUp'), onclick: () => end(false) }, MF.icon('flag'));
     const used = () => new Set(st.team.filter((x) => x != null));
     // busca: TODOS os jogadores da base (principal + estendida), sem dica de quem passou pelo clube — o jogador decide.
@@ -248,7 +304,13 @@
       st.from[k] = curClub();
       st.round++;
       target = null;
-      if (st.team.every((x) => x != null)) { ctx.save(); return end(true); }
+      if (st.team.every((x) => x != null)) {
+        // time completo: entra no mata-mata (o adversário de cada rodada é montado agora e fica salvo)
+        st.phase = 'kn';
+        makeKnockout(st, pool, seed);
+        ctx.save();
+        return paint(k);
+      }
       // próximo clube (sem repetir)
       let n = st.drawn.length + st.round;
       let c = clubAt(n);
@@ -274,11 +336,58 @@
       if (target != null) setTimeout(() => ac.focus && ac.focus(), 30);
     }
 
+    // mata-mata: rodadas jogadas e a próxima partida
+    const knRounds = () => (st.kn ? st.kn.res.length : 0);
+    const knOver = () => !!st.kn && (st.kn.res.length === KN.length || st.kn.res.some((x) => !x.won));
+    const knChamp = () => !!st.kn && st.kn.res.length === KN.length && st.kn.res.every((x) => x.won);
+    function playRound() {
+      if (!st.kn || knOver() || ctx.finished()) return;
+      const n = knRounds();
+      const us = rate(st.team, st.form).score;
+      const them = st.kn.path[n].score;
+      let won = us > them, pen = false;
+      if (us === them) { pen = true; won = st.kn.path[n].coin; }
+      st.kn.res.push({ us, them, won, pen });
+      ctx.save();
+      paint();
+    }
+    function knockoutBox(box) {
+      const kn = st.kn, n = knRounds(), over = knOver(), champ = knChamp();
+      const cur = !over && n < KN.length ? kn.path[n] : null;
+      const us = rate(st.team, st.form).score;
+      box.appendChild(h('ol', { class: 'kn-path' }, KN.map((rd, i) => {
+        const res = kn.res[i];
+        const cls = res ? (res.won ? 'won' : 'lost') : i === n && !over ? 'now' : '';
+        return h('li', { class: 'kn-step ' + cls }, h('span', null, t(rd.k)), h('b', null, res ? (res.won ? '✓' : '✕') : '·'));
+      })));
+      const last = n ? kn.res[n - 1] : null;
+      if (last) {
+        box.appendChild(h('p', { class: 'kn-last ' + (last.won ? 'won' : 'lost') },
+          t(KN[n - 1].k) + ': ' + last.us + ' × ' + last.them + (last.pen ? ' · ' + t('knPens') : '') + ' — ' + (last.won ? t('knWon') : t('knLost'))));
+      }
+      if (cur) {
+        box.appendChild(h('div', { class: 'fd-club pop' },
+          h('div', null,
+            h('span', { class: 'fd-club-l' }, t('knBracket') + ' · ' + t(KN[n].k)),
+            h('strong', null, t('knOppTeam')),
+            h('span', { class: 'fd-club-h' }, cur.top.join(', ')),
+            h('span', { class: 'fd-club-h' }, t('knYou') + ' ' + us + ' × ' + cur.score + ' ' + t('knOpp')))));
+        box.appendChild(h('button', { class: 'btn btn-primary fd-reroll kn-play', type: 'button', onclick: playRound }, t('knPlay')));
+      } else {
+        box.appendChild(h('p', { class: 'kn-end ' + (champ ? 'won' : 'lost') }, champ ? t('knChamp') : t('knOut')));
+        box.appendChild(h('button', { class: 'btn btn-primary fd-reroll kn-play', type: 'button', onclick: () => end(champ) }, t('seeResult')));
+      }
+      box.appendChild(h('p', { class: 'fd-formula' }, t('knHint')));
+    }
+    function knLine() {
+      return KN.map((rd, i) => (st.kn && st.kn.res[i] ? t(rd.k) + (st.kn.res[i].won ? ' ✓' : ' ✕') : null)).filter(Boolean).join(' · ');
+    }
+
     function paint(pop, pop2) {
       const done = ctx.finished();
       const r = st.form ? rate(st.team, st.form) : null;
       const nFilled = st.team.filter((x) => x != null).length;
-      stepPill.textContent = st.phase === 'form' ? t('fdForm') : t('fdStep') + ' ' + nFilled + '/11';
+      stepPill.textContent = st.phase === 'form' ? t('fdForm') : st.phase === 'kn' ? t('knBracket') : t('fdStep') + ' ' + nFilled + '/11';
       missPill.textContent = t('misses') + ': ' + st.miss + '/' + MAXMISS;
       missPill.classList.toggle('hot', st.miss > 0);
       MF.clear(pitch);
@@ -301,7 +410,7 @@
           : [h('span', { class: 'fd-plus', 'aria-hidden': 'true' }, '+'), h('span', { class: 'fd-pos' }, MF.pos(pos))];
         pitch.appendChild(h('button', { type: 'button', class: cls, style: { left: x + '%', top: y + '%' }, disabled: done || st.phase !== 'xi', 'aria-label': label, 'aria-pressed': sel === k || target === k ? 'true' : null, onclick: () => tapSlot(k) }, inner));
       });
-      // rodada: clube sorteado + busca
+      // rodada: clube sorteado + busca (fase do time) ou mata-mata (fase de partidas)
       MF.clear(roundBox);
       if (!done && st.phase === 'xi') {
         const c = curClub();
@@ -315,6 +424,8 @@
         helpBtn.refresh();
         roundBox.appendChild(helpBtn);
         roundBox.appendChild(helpBtn.note);
+      } else if (!done && st.phase === 'kn' && st.kn) {
+        knockoutBox(roundBox);
       }
       MF.clear(side);
       const stat = (n, l, cls) => h('div', { class: 'fd-stat' + (cls ? ' ' + cls : '') }, h('strong', null, n), h('span', null, l));
@@ -322,21 +433,22 @@
       side.appendChild(h('div', { class: 'fd-stats' }, stat(r ? r.ovr : 0, t('fdRating')), stat(r ? r.chem : 0, t('chemistry')), stat(r ? r.score : 0, t('fdDraft'), 'big')));
       side.appendChild(h('p', { class: 'fd-formula' }, t('fdFormula')));
       if (!done) {
-        if (st.form) side.appendChild(h('p', { class: 'fd-legend' }, h('i', { class: 'lg-g' }), ' ', h('i', { class: 'lg-o' }), ' ', h('i', { class: 'lg-r' }), ' ', t('fdLinks')));
-        finishBtn.disabled = nFilled < 11;
-        side.appendChild(h('div', { class: 'fd-actions' }, finishBtn, flag));
+        if (st.form && st.phase === 'xi') side.appendChild(h('p', { class: 'fd-legend' }, h('i', { class: 'lg-g' }), ' ', h('i', { class: 'lg-o' }), ' ', h('i', { class: 'lg-r' }), ' ', t('fdLinks')));
+        side.appendChild(h('div', { class: 'fd-actions' }, flag));
       } else if (r) {
         side.appendChild(h('p', { class: 'stars', 'aria-label': r.stars + '/5' }, h('span', { class: 'stars-row' }, Array.from({ length: 5 }, (_, i) => MF.icon(i < r.stars ? 'star' : 'starOff', 22))), ' ', h('span', null, r.label)));
       }
       if (!done && st.phase === 'form') formSheet();
     }
-    function end(complete) {
+    // fim do draft: vence (campeão do mata-mata) ou perde; a pontuação só conta quando vence
+    function end(win) {
       if (ctx.finished()) return;
       closeSheet(); sel = null;
       const r = rate(st.team, st.form || st.forms[0]);
-      const ok = complete && st.team.every((x) => x != null);
+      const ok = !!win && st.team.every((x) => x != null);
       st.scoreLabel = t('fdDraft') + ': ' + r.score + ' (' + r.ovr + ' + ' + r.chem + ')';
-      const lineTxt = '⭐'.repeat(r.stars) + '☆'.repeat(5 - r.stars) + '\n' + (st.form || '') + ' · ' + t('fdRating') + ' ' + r.ovr + ' · ' + t('chemistry') + ' ' + r.chem + ' · ' + t('fdDraft') + ' ' + r.score;
+      const kn = knLine();
+      const lineTxt = '⭐'.repeat(r.stars) + '☆'.repeat(5 - r.stars) + '\n' + (st.form || '') + ' · ' + t('fdRating') + ' ' + r.ovr + ' · ' + t('chemistry') + ' ' + r.chem + ' · ' + t('fdDraft') + ' ' + r.score + (kn ? '\n' + kn : '');
       ctx.finish(ok, ok ? r.score : 0, lineTxt, { r: { ovr: r.ovr, chem: r.chem, score: r.score, stars: r.stars, label: r.label } });
       paint();
     }
@@ -347,6 +459,8 @@
     board.appendChild(h('div', { class: 'draft-layout fd-layout' }, pitch, side));
     board.appendChild(sheet);
     paint();
+    // gancho de teste (como MF._pyrLast): permite montar um time completo e rodar o mata-mata
+    MF._draftLast = { st, paint, makeKnockout: (p) => makeKnockout(st, p || pool, seed) };
   }
   MF.rateDraft = rate;
   MF._draftForms = FORMS;
