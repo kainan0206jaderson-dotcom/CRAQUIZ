@@ -161,6 +161,83 @@
     st.kn = { path, res: [] };
   }
 
+  // ---- partida ao vivo do mata-mata: simulação determinística ----
+  // O resultado segue a regra (maior pontuação passa; empate = pênaltis). A narração (minutos, autores dos gols,
+  // assistências, chutes, posse) é sorteada a partir da semente do dia/nível/rodada: a mesma partida em todo recarregamento.
+  const POSW = { GK: 0.02, CB: 0.4, LB: 0.6, RB: 0.6, LWB: 0.6, RWB: 0.6, CDM: 0.7, CM: 1.2, CAM: 2.2, LM: 1.8, RM: 1.8, LW: 3, RW: 3, CF: 4, ST: 4.5 };
+  const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
+  function poisson(lam, rnd) {
+    const L = Math.exp(-lam);
+    let k = 0, p = 1;
+    do { k++; p *= rnd(); } while (p > L && k < 12);
+    return k - 1;
+  }
+  // quem marca: atacante pesa mais; a nota também conta
+  function weighted(team, rnd, not) {
+    const { P } = MF.data;
+    const c = team.filter((i) => i != null && i !== not);
+    const w = c.map((i) => (POSW[P[i].pos] || 1) * Math.pow(Math.max(P[i].r, 60) / 80, 3));
+    let x = rnd() * w.reduce((s, v) => s + v, 0);
+    for (let k = 0; k < c.length; k++) { x -= w[k]; if (x <= 0) return c[k]; }
+    return c[c.length - 1];
+  }
+  function simRegular(us, them, tu, tt, rnd) {
+    const win = us > them ? 'us' : us < them ? 'th' : null;
+    const d = (us - them) / 22;
+    const gu = Math.min(7, poisson(clamp(1.25 + d, 0.25, 3.2), rnd));
+    const gt = Math.min(7, poisson(clamp(1.25 - d, 0.25, 3.2), rnd));
+    // gols "de última hora" para o resultado bater com a regra (empate: os dois times ficam iguais)
+    let bu = 0, bt = 0;
+    if (win === 'us' && gu <= gt) bu = gt + 1 - gu;
+    else if (win === 'th' && gt <= gu) bt = gu + 1 - gt;
+    else if (win === null) { bu = Math.max(gu, gt) - gu; bt = Math.max(gu, gt) - gt; }
+    const goals = [];
+    const mk = (side, late) => {
+      const team = side === 'us' ? tu : tt;
+      const m = late ? 74 + Math.floor(rnd() * 17) : 1 + Math.floor(rnd() * 90);
+      const sc = weighted(team, rnd, -1);
+      const as = rnd() < 0.7 ? weighted(team, rnd, sc) : null;
+      goals.push({ side, m, sc, as });
+    };
+    for (let i = 0; i < gu; i++) mk('us', false);
+    for (let i = 0; i < bu; i++) mk('us', true);
+    for (let i = 0; i < gt; i++) mk('th', false);
+    for (let i = 0; i < bt; i++) mk('th', true);
+    goals.sort((a, b) => a.m - b.m);
+    const fu = gu + bu, ft = gt + bt;
+    const pos = Math.round(clamp(50 + d * 5 + (rnd() * 10 - 5), 30, 70));
+    const shU = fu + poisson(clamp(7 + d * 2, 3, 14), rnd);
+    const shT = ft + poisson(clamp(7 - d * 2, 3, 14), rnd);
+    return { gu: fu, gt: ft, goals, pos, shU, shT };
+  }
+  // pênaltis: 5 cobranças cada, o vencedor já está definido; para quando a série acaba
+  function simPens(winSide, tu, tt, rnd) {
+    const { P } = MF.data;
+    const w = 3 + Math.floor(rnd() * 3);
+    const l = Math.max(0, w - 1 - Math.floor(rnd() * 3));
+    const pick = (n) => {
+      const idx = [0, 1, 2, 3, 4];
+      for (let i = 4; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); const x = idx[i]; idx[i] = idx[j]; idx[j] = x; }
+      const yes = new Set(idx.slice(0, n));
+      return [0, 1, 2, 3, 4].map((k) => yes.has(k));
+    };
+    const kU = pick(winSide === 'us' ? w : l), kT = pick(winSide === 'th' ? w : l);
+    const order = (team) => team.filter((i) => i != null).sort((a, b) => (POSW[P[b].pos] || 1) * P[b].r - (POSW[P[a].pos] || 1) * P[a].r);
+    const oU = order(tu), oT = order(tt);
+    const kicks = [];
+    for (let k = 0; k < 5; k++) {
+      kicks.push({ side: 'us', ok: kU[k], who: oU[k % oU.length] });
+      kicks.push({ side: 'th', ok: kT[k], who: oT[k % oT.length] });
+    }
+    let a = 0, b = 0, ka = 0, kb = 0, stop = kicks.length;
+    for (let i = 0; i < kicks.length; i++) {
+      const k = kicks[i];
+      if (k.side === 'us') { ka++; if (k.ok) a++; } else { kb++; if (k.ok) b++; }
+      if (a > b + (5 - kb) || b > a + (5 - ka)) { stop = i + 1; break; }
+    }
+    return { kicks: kicks.slice(0, stop), a, b };
+  }
+
   MF.registerGame({
     num: 10, slug: 'draft-club',
     rules: {
@@ -372,7 +449,7 @@
             h('strong', null, t('knOppTeam')),
             h('span', { class: 'fd-club-h' }, cur.top.join(', ')),
             h('span', { class: 'fd-club-h' }, t('knYou') + ' ' + us + ' × ' + cur.score + ' ' + t('knOpp')))));
-        box.appendChild(h('button', { class: 'btn btn-primary fd-reroll kn-play', type: 'button', onclick: playRound }, t('knPlay')));
+        box.appendChild(h('button', { class: 'btn btn-primary fd-reroll kn-play', type: 'button', onclick: openLive }, t('knPlay')));
       } else {
         box.appendChild(h('p', { class: 'kn-end ' + (champ ? 'won' : 'lost') }, champ ? t('knChamp') : t('knOut')));
         box.appendChild(h('button', { class: 'btn btn-primary fd-reroll kn-play', type: 'button', onclick: () => end(champ) }, t('seeResult')));
@@ -381,6 +458,197 @@
     }
     function knLine() {
       return KN.map((rd, i) => (st.kn && st.kn.res[i] ? t(rd.k) + (st.kn.res[i].won ? ' ✓' : ' ✕') : null)).filter(Boolean).join(' · ');
+    }
+
+    // ---- partida ao vivo do mata-mata (tela de narração) ----
+    // playRound() só registra o resultado; quem mostra a partida é esta tela (a simulação já bate com o resultado)
+    const liveCache = {};
+    function matchPack(n) {
+      if (liveCache[n]) return liveCache[n];
+      const cur = st.kn.path[n];
+      const us = rate(st.team, st.form).score;
+      const rnd = MF.rng(seed + ':live' + n);
+      const main = simRegular(us, cur.score, st.team, cur.team, rnd);
+      const pens = main.gu === main.gt ? simPens(cur.coin ? 'us' : 'th', st.team, cur.team, rnd) : null;
+      // os outros jogos da mesma rodada do chaveamento (8 → 4 → 2 → 1 partidas)
+      const orng = MF.rng(seed + ':oth' + n);
+      const cnt = Math.pow(2, KN.length - 1 - n) - 1;
+      const others = [];
+      for (let j = 0; j < cnt; j++) {
+        const ta = oppXI(st.form, pool, orng), tb = oppXI(st.form, pool, orng);
+        if (!ta || !tb) continue;
+        const sa = rate(ta, st.form).score, sb = rate(tb, st.form).score;
+        others.push(Object.assign({ a: ta, b: tb, sa, sb }, simRegular(sa, sb, ta, tb, orng)));
+      }
+      return (liveCache[n] = { us, them: cur.score, main, pens, others, coin: !!cur.coin });
+    }
+    let liveOv = null, liveT = null;
+    function closeLive() {
+      clearTimeout(liveT); liveT = null;
+      if (liveOv) { liveOv.remove(); liveOv = null; }
+      board.classList.remove('fd-modal');
+    }
+    function commitLive() { closeLive(); playRound(); }
+    function openLive() {
+      if (!st.kn || knOver() || knRounds() >= KN.length || ctx.finished()) return;
+      closeLive();
+      const n = knRounds();
+      const M = matchPack(n);
+      const cur = st.kn.path[n];
+      const { P } = MF.data;
+      const who = (i) => P[i].n;
+      const nm = (side) => (side === 'us' ? t('knYou') : t('knOppTeam'));
+      const surname = (i) => P[i].n.split(' ').pop();
+      const bestOf = (team) => team.reduce((b, i) => (P[i].r > P[b].r ? i : b), team[0]);
+      const sU = h('b', { class: 'kl-sc' }, '0'), sT = h('b', { class: 'kl-sc' }, '0');
+      const minEl = h('span', { class: 'kl-min' }, "0'");
+      const fill = h('i', { class: 'kl-tl-fill' });
+      const tickEls = M.main.goals.map((g) => h('i', { class: 'kl-tick ' + g.side, style: { left: (g.m / 90 * 100) + '%' } }));
+      const scU = h('ul', { class: 'kl-scorers' }), scT = h('ul', { class: 'kl-scorers' });
+      const feed = h('ol', { class: 'kl-feed' });
+      const ban = h('div', { class: 'kl-banner', 'aria-hidden': 'true' });
+      const kickList = h('ol', { class: 'kl-kicks' });
+      const pensScore = h('b', { class: 'kl-pscore' }, '0 : 0');
+      const pensBox = h('div', { class: 'kl-pens', hidden: true }, h('p', { class: 'kl-h' }, t('knPens')), pensScore, kickList);
+      const othRefs = M.others.map((o) => {
+        const ba = bestOf(o.a), bb = bestOf(o.b);
+        const a1 = h('b', null, '0'), a2 = h('b', null, '0'), mn = h('small', null, "0'");
+        const row = h('li', null,
+          h('span', { class: 'nm' }, MF.flag(P[ba].nat), ' ', surname(ba)), a1,
+          h('span', { class: 'dash' }, '–'), a2,
+          h('span', { class: 'nm r' }, surname(bb), ' ', MF.flag(P[bb].nat)), mn);
+        return { row, a1, a2, mn, o };
+      });
+      const btnPlay = h('button', { class: 'btn btn-ghost kl-btn', type: 'button', onclick: togglePlay }, t('knPause'));
+      const btnSpeed = h('button', { class: 'btn btn-ghost kl-btn', type: 'button', onclick: cycleSpeed }, '×1');
+      const btnSkip = h('button', { class: 'btn btn-ghost kl-btn', type: 'button', onclick: skipAll }, t('knSkip'));
+      const btnGo = h('button', { class: 'btn btn-primary kl-btn kl-go', type: 'button', hidden: true, onclick: commitLive }, t('knContinue'));
+      const res = h('p', { class: 'kl-res', hidden: true });
+      const stats = h('div', { class: 'kl-stats', hidden: true });
+      const ov = h('div', { class: 'kl play', role: 'dialog', 'aria-modal': 'true', 'aria-label': t(KN[n].k) },
+        h('div', { class: 'kl-top' },
+          h('span', { class: 'kl-round' }, t(KN[n].k)),
+          h('span', { class: 'kl-live' }, h('i', null), t('knLive')),
+          h('button', { class: 'kl-x', type: 'button', 'aria-label': t('knClose'), onclick: closeLive }, '✕')),
+        h('div', { class: 'kl-board' },
+          h('div', { class: 'kl-team us' }, h('strong', null, t('knYou')), h('small', null, t('fdDraft') + ' ' + M.us), scU),
+          h('div', { class: 'kl-mid' }, h('span', { class: 'kl-score' }, sU, h('i', null, ':'), sT), minEl, h('div', { class: 'kl-tl' }, fill, tickEls)),
+          h('div', { class: 'kl-team th' }, h('strong', null, t('knOppTeam')), h('small', null, t('fdDraft') + ' ' + M.them), scT)),
+        h('div', { class: 'kl-body' },
+          h('div', { class: 'kl-col' }, h('p', { class: 'kl-h' }, t('knFeed')), feed, pensBox),
+          h('div', { class: 'kl-col' }, h('p', { class: 'kl-h' }, t('knOthers')), h('ul', { class: 'kl-oth' }, othRefs.map((r) => r.row)), stats)),
+        ban,
+        h('div', { class: 'kl-ctl' }, res, btnPlay, btnSpeed, btnSkip, btnGo));
+      let minute = 0, playing = true, speed = 1, kicksDone = 0, finished = false, ca = 0, cb = 0;
+      const SPEEDS = [1, 2, 4];
+      function setScore() {
+        sU.textContent = M.main.goals.filter((g) => g.side === 'us' && g.m <= minute).length;
+        sT.textContent = M.main.goals.filter((g) => g.side === 'th' && g.m <= minute).length;
+      }
+      function sys(text) {
+        feed.insertBefore(h('li', { class: 'kl-ev sys' }, h('b', null, minute + "'"), h('span', null, ' ' + text)), feed.firstChild);
+      }
+      function goalEvent(g, anim) {
+        const list = g.side === 'us' ? scU : scT;
+        feed.insertBefore(h('li', { class: 'kl-ev goal ' + g.side },
+          h('b', null, g.m + "'"), h('span', null, ' ⚽ ' + who(g.sc)),
+          g.as != null ? h('small', null, ' · ' + t('knAssist') + ' ' + who(g.as)) : null,
+          h('em', null, nm(g.side))), feed.firstChild);
+        list.insertBefore(h('li', null, who(g.sc) + ' ' + g.m + "'"), list.firstChild);
+        tickEls[M.main.goals.indexOf(g)].classList.add('on');
+        setScore();
+        if (anim) {
+          ov.classList.remove('goal'); void ov.offsetWidth; ov.classList.add('goal');
+          ban.textContent = t('knGoal') + ' ' + who(g.sc);
+          ban.classList.remove('on'); void ban.offsetWidth; ban.classList.add('on');
+        }
+      }
+      function step(anim) {
+        minute++;
+        minEl.textContent = minute + "'";
+        fill.style.width = (minute / 90 * 100) + '%';
+        if (minute === 45) sys(t('knHalf'));
+        M.main.goals.forEach((g) => { if (g.m === minute) goalEvent(g, anim); });
+        othRefs.forEach((r) => {
+          r.a1.textContent = r.o.goals.filter((x) => x.side === 'us' && x.m <= minute).length;
+          r.a2.textContent = r.o.goals.filter((x) => x.side === 'th' && x.m <= minute).length;
+          r.mn.textContent = minute >= 90 ? 'FT' : minute + "'";
+        });
+        if (minute === 90) sys(t('knFull'));
+      }
+      function kick(anim) {
+        const k = M.pens.kicks[kicksDone++];
+        if (k.ok) { if (k.side === 'us') ca++; else cb++; }
+        pensScore.textContent = ca + ' : ' + cb;
+        kickList.appendChild(h('li', { class: k.ok ? 'ok' : 'miss' }, (k.side === 'us' ? '▲ ' : '▼ ') + who(k.who) + (k.ok ? ' ✓' : ' ✕')));
+        if (anim) { kickList.lastChild.classList.add('new'); }
+      }
+      function doNext(anim) {
+        if (finished) return;
+        if (minute < 90) step(anim);
+        else if (M.pens && kicksDone < M.pens.kicks.length) {
+          if (kicksDone === 0) { pensBox.hidden = false; sys(t('knPensStart')); }
+          kick(anim);
+        } else end();
+      }
+      function loop() {
+        clearTimeout(liveT);
+        if (!playing || finished) return;
+        const delay = (minute >= 90 ? 700 : 220) / speed;
+        liveT = setTimeout(() => { doNext(true); loop(); }, delay);
+      }
+      function togglePlay() {
+        if (finished) return;
+        playing = !playing;
+        ov.classList.toggle('play', playing);
+        btnPlay.textContent = playing ? t('knPause') : t('knResume');
+        if (playing) loop(); else clearTimeout(liveT);
+      }
+      function cycleSpeed() {
+        speed = SPEEDS[(SPEEDS.indexOf(speed) + 1) % SPEEDS.length];
+        btnSpeed.textContent = '×' + speed;
+        if (playing) loop();
+      }
+      function skipAll() {
+        if (finished) return;
+        clearTimeout(liveT);
+        while (minute < 90) step(false);
+        if (M.pens) {
+          if (kicksDone === 0) { pensBox.hidden = false; sys(t('knPensStart')); }
+          while (kicksDone < M.pens.kicks.length) kick(false);
+        }
+        end();
+      }
+      function end() {
+        if (finished) return;
+        finished = true; playing = false;
+        clearTimeout(liveT);
+        ov.classList.remove('play', 'goal'); ov.classList.add('done');
+        btnPlay.hidden = true; btnSpeed.hidden = true; btnSkip.hidden = true; btnGo.hidden = false;
+        const win = M.us > M.them || (M.us === M.them && M.coin);
+        const g = M.main;
+        res.textContent = g.gu + ' × ' + g.gt + (M.pens ? ' (' + t('knPens') + ' ' + M.pens.a + ' × ' + M.pens.b + ')' : '') + ' — ' + (win ? t('knWon') : t('knLost'));
+        res.className = 'kl-res ' + (win ? 'won' : 'lost');
+        res.hidden = false;
+        MF.clear(stats);
+        stats.append(
+          h('div', null, h('span', null, t('knStatsPos')), h('b', null, g.pos + '% · ' + (100 - g.pos) + '%')),
+          h('div', null, h('span', null, t('knStatsShots')), h('b', null, g.shU + ' · ' + g.shT)));
+        stats.hidden = false;
+      }
+      // apresentação do adversário (como no draft do FIFA): os 11 do rival no campo, com a formação do seu time
+      const slots = (FORMS[st.form] || FORMS['4-3-3']).s;
+      const intro = h('div', { class: 'kl-intro' },
+        h('p', { class: 'kl-h' }, t('knIntro')),
+        h('strong', { class: 'kl-intro-t' }, t('knOppTeam') + ' · ' + t('fdDraft') + ' ' + M.them),
+        h('div', { class: 'kl-intro-pitch' }, slots.map(([pos, x, y], k) =>
+          h('div', { class: 'kl-intro-slot', style: { left: x + '%', top: y + '%', animationDelay: (k * 80) + 'ms' } }, card(cur.team[k], { mini: true, pos })))),
+        h('button', { class: 'btn btn-primary kl-go kl-intro-go', type: 'button', onclick: startMatch }, t('knKickoffBtn')));
+      function startMatch() { intro.remove(); sys(t('knKick')); loop(); }
+      board.classList.add('fd-modal');
+      board.appendChild(ov);
+      ov.appendChild(intro);
+      liveOv = ov;
     }
 
     function paint(pop, pop2) {
@@ -443,6 +711,7 @@
     // fim do draft: vence (campeão do mata-mata) ou perde; a pontuação só conta quando vence
     function end(win) {
       if (ctx.finished()) return;
+      closeLive();
       closeSheet(); sel = null;
       const r = rate(st.team, st.form || st.forms[0]);
       const ok = !!win && st.team.every((x) => x != null);
