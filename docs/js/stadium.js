@@ -201,13 +201,13 @@
     tx.anisotropy = Math.min(maxAniso || 4, 8);
     return tx;
   }
-  // pinta "MUNDOFUT10" atrás dos gols (refeito só se a fonte chegar depois)
+  // pinta "CRAQUIZ" atrás dos gols (refeito só se a fonte chegar depois)
   function pitchText(c) {
     const g = c.getContext('2d'), K = PK;
     const P = (x, z) => [(x + SA) * K, (z + SB) * K];
     for (const [z, rot] of [[55.6, 0], [-55.6, Math.PI]]) {
       g.save(); g.font = `900 ${3.4 * K}px "Big Shoulders Display", Impact, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = 'rgba(255,212,0,.16)';
-      g.translate(...P(0, z)); if (rot) g.rotate(rot); g.fillText('MUNDOFUT10', 0, 0); g.restore();
+      g.translate(...P(0, z)); if (rot) g.rotate(rot); g.fillText('CRAQUIZ', 0, 0); g.restore();
     }
   }
   function pitchBase(c) {
@@ -301,10 +301,11 @@
     g.font = '900 44px "Big Shoulders Display", Impact, sans-serif'; g.textBaseline = 'middle';
     for (let i = 0; i < 4; i++) {
       const x = i * 256 + 18;
-      g.fillStyle = '#ffd400'; g.fillText('MUNDOFUT', x, 34);
-      const w = g.measureText('MUNDOFUT').width;
-      g.fillStyle = '#ffd400'; g.fillRect(x + w + 6, 10, 46, 46);
-      g.fillStyle = '#0b0b09'; g.fillText('10', x + w + 10, 35);
+      g.fillStyle = '#ffd400'; g.fillText('CRAQ', x, 34);
+      const w = g.measureText('CRAQ').width;
+      const bw = g.measureText('UIZ').width + 14;
+      g.fillStyle = '#ffd400'; g.fillRect(x + w + 6, 10, bw, 46);
+      g.fillStyle = '#0b0b09'; g.fillText('UIZ', x + w + 13, 35);
     }
   }
   function ledTexture(T) {
@@ -402,8 +403,8 @@
       // dois-pontos piscando a cada segundo
       if (st.colon) { g.fillStyle = LED; g.shadowColor = glow; g.shadowBlur = 16; for (const y of [182, 256]) { g.beginPath(); g.arc(W / 2, y, 11, 0, 6.2832); g.fill(); } g.shadowBlur = 0; }
       g.font = '800 74px "Big Shoulders Display", Impact, sans-serif';
-      glowText('MUN', 76, 246, '#f6efd6', 'rgba(255,240,200,.6)', 12, 'left');
-      glowText('FUT', W - 76, 246, '#f6efd6', 'rgba(255,240,200,.6)', 12, 'right');
+      glowText('CRA', 76, 246, '#f6efd6', 'rgba(255,240,200,.6)', 12, 'left');
+      glowText('QUI', W - 76, 246, '#f6efd6', 'rgba(255,240,200,.6)', 12, 'right');
       g.shadowBlur = 14;
       g.shadowColor = LED; g.fillStyle = LED; g.fillRect(44, 192, 18, 62);
       g.shadowColor = GREEN; g.fillStyle = GREEN; g.fillRect(W - 62, 192, 18, 62);

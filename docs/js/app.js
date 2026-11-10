@@ -61,11 +61,11 @@
             h('span', { class: 'sb-sec' }, dig('s0', c.s[0], 'sm'), dig('s1', c.s[1], 'sm')),
             sky),
           h('div', { class: 'sb-main' },
-            h('span', { class: 'sb-team' }, h('i', { class: 'sb-kit' }), 'MUN'),
+            h('span', { class: 'sb-team' }, h('i', { class: 'sb-kit' }), 'CRA'),
             h('span', { class: 'sb-score', 'data-g': 'h' }, dig('h0', c.h[0]), dig('h1', c.h[1])),
             h('span', { class: 'sb-colon' }, ':'),
             h('span', { class: 'sb-score', 'data-g': 'm' }, dig('m0', c.m[0]), dig('m1', c.m[1])),
-            h('span', { class: 'sb-team away' }, 'FUT', h('i', { class: 'sb-kit g' }))),
+            h('span', { class: 'sb-team away' }, 'QUI', h('i', { class: 'sb-kit g' }))),
           h('div', { class: 'sb-goal' }, h('span', null, '')),
           h('div', { class: 'sb-bar', style: { '--p': ((+c.s + 1) / 60).toFixed(4) } }))));
     board._v = c;
@@ -136,8 +136,10 @@
         onclick: () => { if (v === MF.lang) return; MF.setLang(v); route(); },
       }, l)));
     const skip = h('a', { class: 'skip-link', href: '#', onclick: (e) => { e.preventDefault(); const f = document.querySelector('.sheet a, .sheet-row a, .sheet-panel a, .game-board input, .game-board button'); if (f) f.focus(); } }, t('skipToGames'));
+    const brand = h('a', { class: 'logo', href: '#', 'aria-label': 'CRAQUIZ', translate: 'no' }, h('span', { class: 'logo-word' }, 'CRAQ'), h('span', { class: 'logo-num' }, 'UIZ'));
+    brand.insertAdjacentHTML('afterbegin', '<svg class="logo-ball" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><circle cx="32" cy="32" r="31" fill="#ffd400"/><circle cx="32" cy="32" r="25" fill="#0d0c09"/><path d="M32 20.5 42.4 28.1 38.4 40.3H25.6L21.6 28.1Z" fill="#f4ecd2"/><path d="M32 20.5V11M42.4 28.1 52.6 24.8M38.4 40.3 44.8 49M25.6 40.3 19.2 49M21.6 28.1 11.4 24.8" stroke="#f4ecd2" stroke-width="2" fill="none" stroke-linecap="round"/><text x="32" y="37" text-anchor="middle" font-family="Big Shoulders Display, Impact, sans-serif" font-weight="900" font-size="17" fill="#0d0c09">?</text></svg>');
     return h('header', { class: 'top' }, skip,
-      h('a', { class: 'logo', href: '#', 'aria-label': 'MUNDOFUT10', translate: 'no' }, h('span', { class: 'logo-word' }, 'MUNDOFUT'), h('span', { class: 'logo-num' }, '10')),
+      brand,
       h('div', { class: 'top-right' },
         noClock ? null : h('span', { class: 'cd' }, h('span', { class: 'sr-only' }, t('brasiliaTime')), h('time', { class: 'cd-time', 'data-clock': '' }, brasiliaTime())),
         sel,
@@ -268,7 +270,7 @@ scoreboard(),
         done === 11 ? h('p', { class: 'all-done' }, t('allDone')) : null),
       h('div', { class: 'home-grid' }, h('div', { class: 'pitch-wrap' }, pitch), h('div', { class: 'sheet-col' }, levelLegend(), sheet))));
     root.appendChild(footer());
-    document.title = 'MUNDOFUT10';
+    document.title = 'CRAQUIZ';
     if (!MF._played && !MF._introRunning) { pitch.classList.add('enter'); MF._played = true; }
   }
 
@@ -323,7 +325,7 @@ scoreboard()),
     const main = h('main', { class: 'home3d' }, stage, panel);
     root.appendChild(main);
     root.appendChild(footer());
-    document.title = 'MUNDOFUT10';
+    document.title = 'CRAQUIZ';
     S.fogEl = fog;
     const wide = () => innerWidth >= 900;
     const setCols = () => stage.classList.toggle('cols', innerWidth >= 1200);
@@ -392,7 +394,7 @@ scoreboard()),
     const root = MF.clear(app());
     root.appendChild(header());
     const [name, desc] = MF.gameInfo(g.num - 1);
-    document.title = name + ' · MUNDOFUT10';
+    document.title = name + ' · CRAQUIZ';
     const stage = h('div', { class: 'stage' });
     const statsBtn = h('button', { class: 'icon-btn', type: 'button', 'aria-label': t('stats'), onclick: () => gameStats(g) }, statsIcon());
     root.appendChild(h('main', { class: 'game g-' + g.slug },
@@ -496,7 +498,7 @@ scoreboard()),
       const [name] = MF.gameInfo(g.num - 1);
       const win = state.status === 'won';
       const lv = state.opts && state.opts.mode;
-      const share = 'MUNDOFUT10 #' + MF.challengeNo() + ' · ' + name + (MF.LEVELS.includes(lv) ? ' · ' + t(lv === 'legend' ? 'legendary' : lv) : '') + '\n' + (state.share || '');
+      const share = 'CRAQUIZ #' + MF.challengeNo() + ' · ' + name + (MF.LEVELS.includes(lv) ? ' · ' + t(lv === 'legend' ? 'legendary' : lv) : '') + '\n' + (state.share || '');
       const s = MF.stats(g.slug);
       resultBox.appendChild(h('section', { class: 'result ' + (win ? 'win' : 'lose'), 'aria-live': 'polite' },
         h('div', { class: 'result-head' },

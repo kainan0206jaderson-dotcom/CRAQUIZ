@@ -1,4 +1,4 @@
-"""MUNDOFUT10 — gera docs/sw.js com a lista de arquivos e uma versão nova (o app busca sempre a versão mais nova; cache só sem internet)."""
+"""CRAQUIZ — gera docs/sw.js com a lista de arquivos e uma versão nova (o app busca sempre a versão mais nova; cache só sem internet)."""
 import hashlib, json, os
 
 ROOT = os.path.join(os.path.dirname(__file__), '..', 'docs')
@@ -16,6 +16,6 @@ for f in files + ['data/ext.json', 'data/squads.json']:
 ver = h.hexdigest()[:10]
 old = open(os.path.join(ROOT, 'sw.js')).read()
 body = old[old.index("self.addEventListener('install'"):]
-head = f"/* MUNDOFUT10 — cache para abrir rápido e funcionar offline. Versão {ver} */\nconst CACHE = 'mf10-{ver}';\nconst PRECACHE = {json.dumps(files, ensure_ascii=False)};\n"
+head = f"/* CRAQUIZ — cache para abrir rápido e funcionar offline. Versão {ver} */\nconst CACHE = 'mf10-{ver}';\nconst PRECACHE = {json.dumps(files, ensure_ascii=False)};\n"
 open(os.path.join(ROOT, 'sw.js'), 'w').write(head + body)
 print('sw.js', ver, len(files), 'arquivos')
