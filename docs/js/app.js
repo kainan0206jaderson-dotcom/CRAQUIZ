@@ -143,7 +143,13 @@
       h('div', { class: 'top-right' },
         noClock ? null : h('span', { class: 'cd' }, h('span', { class: 'sr-only' }, t('brasiliaTime')), h('time', { class: 'cd-time', 'data-clock': '' }, brasiliaTime())),
         sel,
+        h('button', { class: 'icon-btn sound-btn', type: 'button', 'aria-label': 'Som', 'aria-pressed': MF.sound && MF.sound.isMuted() ? 'false' : 'true', title: 'Som', onclick: (e) => { if (!MF.sound) return; const m = MF.sound.toggle(); e.currentTarget.setAttribute('aria-pressed', m ? 'false' : 'true'); e.currentTarget.classList.toggle('muted', m); } }, soundIcon(MF.sound && MF.sound.isMuted())),
         h('button', { class: 'icon-btn', type: 'button', 'aria-label': t('stats'), title: t('stats'), onclick: () => showAllStats() }, statsIcon())));
+  }
+  function soundIcon(muted) {
+    const s = h('span', { 'aria-hidden': 'true', class: 'ico' });
+    s.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20"><path d="M3 9h4l5-4v14l-5-4H3z" fill="currentColor"/>' + (muted ? '<path d="M16 9l5 6M21 9l-5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' : '<path d="M16 8.5a5 5 0 0 1 0 7M18.8 6a9 9 0 0 1 0 12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>') + '</svg>';
+    return s;
   }
   function statsIcon() {
     const s = h('span', { 'aria-hidden': 'true', class: 'ico' });
@@ -319,7 +325,7 @@ scoreboard(),
 scoreboard()),
       done === 11 ? h('p', { class: 'all-done' }, t('allDone')) : null);
     const fog = h('div', { class: 'cloud-fog', 'aria-hidden': 'true' });
-    const skip = h('button', { class: 'cam-skip', type: 'button', hidden: true, onclick: () => S.skipIntro() }, t('skipIntro'));
+    const skip = h('button', { class: 'cam-skip', type: 'button', hidden: true, onclick: () => { S.skipIntro(); MF.sound && MF.sound.stop(); } }, t('skipIntro'));
     const stage = h('section', { class: 'stage3d' }, fog, layer, ui, skip);
     const panel = h('aside', { class: 'sheet-panel', 'aria-label': t('lineup') }, h('h2', { class: 'panel-title' }, t('todayGames')), levelLegend(), sheetList());
     const main = h('main', { class: 'home3d' }, stage, panel);
@@ -366,8 +372,9 @@ scoreboard()),
         document.body.classList.remove('intro-on');
         main.classList.remove('intro-on');
         main.classList.add('ui-in');
-      }, () => { skip.hidden = true; });
-      const onKey = (e) => { if (e.key === 'Escape') { S.skipIntro(); removeEventListener('keydown', onKey); } };
+      }, () => { skip.hidden = true; MF.sound && MF.sound.stop(); });
+      if (MF.sound && S.intro) MF.sound.intro(S.intro.dur);
+      const onKey = (e) => { if (e.key === 'Escape') { S.skipIntro(); MF.sound && MF.sound.stop(); removeEventListener('keydown', onKey); } };
       addEventListener('keydown', onKey);
     } else {
       S.showHome();
