@@ -1177,12 +1177,7 @@ button, .btn, .sheet-row, .j3d, .icon-btn, .lang-switch button, .seg button, .sl
 <script>
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
   addEventListener('load', () => navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then((reg) => reg.update()).catch(() => {}));
-  // versão nova instalada: recarrega uma vez, só se a pessoa ainda estiver na tela inicial
-  let reloaded = false;
-  navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (reloaded || (location.hash && location.hash !== '#')) return;
-    reloaded = true; location.reload();
-  });
+  // sem recarregar sozinho: a versão nova chega na próxima abertura (arquivos sempre buscados da rede primeiro)
 }
 </script>
 </body>
