@@ -363,6 +363,7 @@ scoreboard()),
     const firstTime = !MF._introPlayed && !MF.reduced();
     if (firstTime) {
       MF._introPlayed = true;
+      const begin = () => {
       main.classList.add('intro-on');
       document.body.classList.add('intro-on');
       skip.hidden = false;
@@ -382,6 +383,14 @@ scoreboard()),
       }
       const onKey = (e) => { if (e.key === 'Escape') { S.skipIntro(); MF.sound && MF.sound.stop(); removeEventListener('keydown', onKey); } };
       addEventListener('keydown', onKey);
+      };
+      // tela de entrada: o site só abre (e o som começa) depois de um toque ou clique
+      const touch = matchMedia('(pointer: coarse)').matches;
+      const gate = h('button', { class: 'gate', type: 'button', 'aria-label': touch ? 'Toque para começar' : 'Clique para começar', onclick: () => { gate.remove(); begin(); } },
+        h('span', { class: 'gate-logo', 'aria-hidden': 'true' }, h('span', { class: 'gate-word' }, 'CRAQ'), h('span', { class: 'gate-num' }, 'UIZ')),
+        h('span', { class: 'gate-hint', 'aria-hidden': 'true' }, touch ? 'Toque na tela para começar' : 'Clique com o mouse para começar'));
+      root.appendChild(gate);
+      gate.focus({ preventScroll: true });
     } else {
       S.showHome();
       main.classList.add('ui-in', 'no-anim');
