@@ -374,6 +374,12 @@ scoreboard()),
         main.classList.add('ui-in');
       }, () => { skip.hidden = true; MF.sound && MF.sound.stop(); });
       if (MF.sound && S.intro) MF.sound.intro(S.intro.dur);
+      if (MF.sound && MF.sound.waiting()) {
+        const hint = h('p', { class: 'sound-hint', role: 'status' }, 'Toque na tela para ouvir o som');
+        stage.appendChild(hint);
+        const off = () => { hint.remove(); removeEventListener('mf10-sound-on', off); };
+        addEventListener('mf10-sound-on', off);
+      }
       const onKey = (e) => { if (e.key === 'Escape') { S.skipIntro(); MF.sound && MF.sound.stop(); removeEventListener('keydown', onKey); } };
       addEventListener('keydown', onKey);
     } else {

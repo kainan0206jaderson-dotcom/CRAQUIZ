@@ -81,6 +81,7 @@
       pending = null;
       if (left > 900) play(left / 1000);
     }
+    dispatchEvent(new Event('mf10-sound-on'));
   }
   function play(seconds) {
     const c = ensure();
@@ -107,6 +108,7 @@
       }
     },
     isMuted: () => muted,
+    waiting: () => !muted && !!pending,   // a abertura quer som, mas o navegador ainda espera um toque
     toggle() {
       muted = !muted;
       try { localStorage.setItem(KEY, muted ? '0' : '1'); } catch (e) { /* ignora */ }
