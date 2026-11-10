@@ -3,7 +3,7 @@
 Onze desafios de futebol por dia — tudo vira às 6h (horário de Brasília).
 Funciona no computador e no celular; no celular pode ser instalado como app ("Adicionar à tela inicial").
 
-**Jogar:** https://kainan0206jaderson-dotcom.github.io/mundofut10/
+**Jogar:** https://kainan0206jaderson-dotcom.github.io/craquiz/
 
 Criador: vulgo **SucodeFrutas**.
 
