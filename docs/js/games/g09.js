@@ -19,25 +19,28 @@
     if (MF.line(x) === MF.line(y)) return { v: Math.round(40 + 12 * Math.max(0, 1 - d / 80)), tag: 'sameLine' };
     return { v: Math.round(18 * Math.max(0, 1 - d / 45)) };
   };
+  // Seis dicas: posição, época, seleção, liga, clube e "juntos" (companheiro de clube ou no mesmo clube hoje).
+  // Quanto mais dicas batem, mais perto de 100 (e a barra enche junto): 6 de 6 = 100; 5 = 96; 4 = 90; 3 = 65; 2 = 35; 1 = −5; nenhuma = −40.
+  // Posição parecida (mesmo setor, sem ser a exata) conta meia dica.
+  const HINT_CURVE = [-40, -5, 35, 65, 90, 96, 100];
   MF.similarity = (a, b, tmCache) => {
     if (MF.same(a.i, b.i)) return { s: 100, why: [] };
-    let s = -55;
     const why = [];
+    let hits = 0;
     const pc = MF.posClose(a.pos, b.pos);
-    s += pc.v; if (pc.tag) why.push(pc.tag);
+    if (pc.tag === 'samePos') { hits += 1; why.push('samePos'); }
+    else if (pc.tag === 'sameLine') { hits += 0.5; why.push('sameLine'); }
     const d = Math.abs((a.born || 0) - (b.born || 0));
-    if (d <= 1) { s += 8; why.push('sameEra'); } else if (d <= 3) { s += 5; why.push('sameEra'); } else if (d <= 6) s += 2; else if (d > 10) s -= 4;
-    if (a.nat && a.nat === b.nat) { s += 18; why.push('sameNat'); }
+    if (d <= 3) { hits += 1; why.push('sameEra'); }
+    if (a.nat && a.nat === b.nat) { hits += 1; why.push('sameNat'); }
     const ca = MF.curClub(a), cb = MF.curClub(b), cl = MF.data.clubs;
-    if (ca != null && cb != null && cl[ca].l === cl[cb].l) { s += 6; why.push('sameLeague'); }
-    else if (a.leagues.some((l) => b.leagues.includes(l))) { s += 3; why.push('sameLeague'); }
+    if ((ca != null && cb != null && cl[ca].l === cl[cb].l) || a.leagues.some((l) => b.leagues.includes(l))) { hits += 1; why.push('sameLeague'); }
     const shared = a.clubs.filter((c) => b.clubs.includes(c));
-    if (shared.length) {
-      s += Math.min(30, 20 + 5 * (shared.length - 1)); why.push('sameClub');
-      if (tmCache.has(b.i)) { s += 16; why.push('teammates'); }
-      if (ca != null && ca === cb) { s += 12; why.push('nowTogether'); }
-    }
-    return { s: MF.clamp(Math.round(s), -99, 99), why };
+    if (shared.length) { hits += 1; why.push('sameClub'); }
+    if ((shared.length && tmCache.has(b.i)) || (ca != null && ca === cb)) { hits += 1; why.push(ca != null && ca === cb ? 'nowTogether' : 'teammates'); }
+    const i = Math.min(5, Math.floor(hits)), f = hits - i;
+    const s = HINT_CURVE[i] + (HINT_CURVE[i + 1] - HINT_CURVE[i]) * f;
+    return { s: MF.clamp(Math.round(s), -99, 100), why };
   };
   // largura da barra: −60 ou menos = vazia, 100 = cheia (no Futbol11 a barra começa a encher perto de −60)
   MF.distFill = (s) => MF.clamp((s + 60) / 1.6, 3, 100);
