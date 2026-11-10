@@ -520,7 +520,7 @@
         return { row, a1, a2, mn, o };
       });
       const btnPlay = h('button', { class: 'btn btn-ghost kl-btn', type: 'button', onclick: togglePlay }, t('knPause'));
-      const btnSpeed = h('button', { class: 'btn btn-ghost kl-btn', type: 'button', onclick: cycleSpeed }, '×1');
+      const btnSpeed = h('button', { class: 'btn btn-ghost kl-btn kl-speed', type: 'button', 'aria-label': 'Velocidade', title: 'Velocidade', onclick: cycleSpeed }, '×1');
       const btnSkip = h('button', { class: 'btn btn-ghost kl-btn', type: 'button', onclick: skipAll }, t('knSkip'));
       const btnGo = h('button', { class: 'btn btn-primary kl-btn kl-go', type: 'button', hidden: true, onclick: commitLive }, t('knContinue'));
       const res = h('p', { class: 'kl-res', hidden: true });
@@ -534,13 +534,13 @@
           h('div', { class: 'kl-team us' }, h('strong', null, t('knYou')), h('small', null, t('fdDraft') + ' ' + M.us), scU),
           h('div', { class: 'kl-mid' }, h('span', { class: 'kl-score' }, sU, h('i', null, ':'), sT), minEl, h('div', { class: 'kl-tl' }, fill, tickEls)),
           h('div', { class: 'kl-team th' }, h('strong', null, t('knOppTeam')), h('small', null, t('fdDraft') + ' ' + M.them), scT)),
+        h('div', { class: 'kl-ctl' }, res, btnPlay, btnSpeed, btnSkip, btnGo),
         h('div', { class: 'kl-body' },
           h('div', { class: 'kl-col' }, h('p', { class: 'kl-h' }, t('knFeed')), feed, pensBox),
           h('div', { class: 'kl-col' }, h('p', { class: 'kl-h' }, t('knOthers')), h('ul', { class: 'kl-oth' }, othRefs.map((r) => r.row)), stats)),
-        ban,
-        h('div', { class: 'kl-ctl' }, res, btnPlay, btnSpeed, btnSkip, btnGo));
+        ban);
       let minute = 0, playing = true, speed = 1, kicksDone = 0, finished = false, ca = 0, cb = 0;
-      const SPEEDS = [1, 2, 4];
+      const SPEEDS = [1, 2, 4, 8];
       function setScore() {
         sU.textContent = M.main.goals.filter((g) => g.side === 'us' && g.m <= minute).length;
         sT.textContent = M.main.goals.filter((g) => g.side === 'th' && g.m <= minute).length;
@@ -643,8 +643,10 @@
         h('strong', { class: 'kl-intro-t' }, t('knOppTeam') + ' · ' + t('fdDraft') + ' ' + M.them),
         h('div', { class: 'kl-intro-pitch' }, slots.map(([pos, x, y], k) =>
           h('div', { class: 'kl-intro-slot', style: { left: x + '%', top: y + '%', animationDelay: (k * 80) + 'ms' } }, card(cur.team[k], { mini: true, pos })))),
-        h('button', { class: 'btn btn-primary kl-go kl-intro-go', type: 'button', onclick: startMatch }, t('knKickoffBtn')));
+        h('button', { class: 'btn btn-primary kl-go kl-intro-go', type: 'button', onclick: startMatch }, t('knKickoffBtn')), h('button', { class: 'btn btn-ghost kl-btn kl-intro-skip', type: 'button', onclick: skipIntro }, t('knSkip')));
       function startMatch() { intro.remove(); sys(t('knKick')); loop(); }
+      // pular sem assistir: pula a tela de escalação e a partida inteira, direto para o resultado
+      function skipIntro() { intro.remove(); skipAll(); }
       board.classList.add('fd-modal');
       board.appendChild(ov);
       ov.appendChild(intro);
