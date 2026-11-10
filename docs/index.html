@@ -88,16 +88,6 @@ input, textarea { caret-color: var(--yellow); }
   padding-block: 10px; padding-inline: var(--gutter); background: color-mix(in srgb, var(--ink) 88%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
 .logo { display: inline-flex; align-items: stretch; text-decoration: none; font-family: var(--f-display); font-weight: 900; font-size: 26px; line-height: 1; }
 .logo-word { padding: 6px 2px 4px 0; letter-spacing: .02em; }
-.sound-btn.muted { opacity: .45; }
-.gate { position: fixed; inset: 0; z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; width: 100%; height: 100%; margin: 0; border: 0; border-radius: 0; cursor: pointer; background: #0d0c09; color: #f4ecd2; }
-.gate:focus-visible { outline: 3px solid #ffd400; outline-offset: -12px; }
-.gate-logo { display: flex; font-family: 'Big Shoulders Display', Impact, sans-serif; font-weight: 900; font-size: clamp(64px, 20vw, 170px); line-height: .9; letter-spacing: .02em; }
-.gate-word { color: #f4ecd2; }
-.gate-num { color: #ffd400; }
-.gate-hint { font: 700 17px/1.2 system-ui, sans-serif; color: #ffd400; animation: gatePulse 1.6s ease-in-out infinite; }
-@keyframes gatePulse { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
-@media (prefers-reduced-motion: reduce) { .gate-hint { animation: none; } }
-.sound-hint { position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%); margin: 0; z-index: 5; padding: 8px 14px; border-radius: 999px; background: var(--yellow); color: var(--ink); font: 700 14px/1 var(--font-display, sans-serif); letter-spacing: .02em; pointer-events: none; white-space: nowrap; }
 .logo-ball { flex: none; width: 1.3em; height: 1.3em; align-self: center; margin-right: 6px; }
 .logo-num { background: var(--yellow); color: var(--on-yellow); padding: 6px 7px 4px; border-radius: 4px; margin-left: 4px; transform: skewX(-8deg); }
 .top-right { display: flex; align-items: center; gap: 10px; min-width: 0; }
@@ -1168,7 +1158,6 @@ button, .btn, .sheet-row, .j3d, .icon-btn, .lang-switch button, .seg button, .sl
 <script src="js/i18n.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/levels.js"></script>
-<script src="js/sound.js"></script>
 <script src="js/app.js"></script>
 <script src="js/stadium.js"></script>
 <script src="js/games/g01.js"></script>
