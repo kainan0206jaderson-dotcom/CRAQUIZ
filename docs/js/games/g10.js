@@ -303,7 +303,7 @@
     const used = () => new Set(st.team.filter((x) => x != null));
     // busca: TODOS os jogadores da base (principal + estendida), sem dica de quem passou pelo clube — o jogador decide.
     // Errou (o escolhido nunca jogou no clube da rodada)? Conta 1 erro; no 3º erro o draft acaba.
-    const MAXMISS = 3;
+    const MAXMISS = Infinity; // sem limite de erros (modo de teste)
     const ac = MF.autocomplete({
       placeholder: t('fdTypeFrom'),
       source: (q) => {
@@ -658,7 +658,7 @@
       const r = st.form ? rate(st.team, st.form) : null;
       const nFilled = st.team.filter((x) => x != null).length;
       stepPill.textContent = st.phase === 'form' ? t('fdForm') : st.phase === 'kn' ? t('knBracket') : t('fdStep') + ' ' + nFilled + '/11';
-      missPill.textContent = t('misses') + ': ' + st.miss + '/' + MAXMISS;
+      missPill.textContent = t('misses') + ': ' + st.miss + (MAXMISS < Infinity ? '/' + MAXMISS : '');
       missPill.classList.toggle('hot', st.miss > 0);
       MF.clear(pitch);
       pitch.insertAdjacentHTML('beforeend', PITCH_SVG);
