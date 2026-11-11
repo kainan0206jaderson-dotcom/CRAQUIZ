@@ -152,7 +152,7 @@
   // (16/10/2026: Modo impostor e Jogou por onde? mudaram no meio do dia, a pedido do usuário)
   MF.STATE_VER = { 'modo-impostor': '#6', 'jogou-por-onde': '#2', 'desafio-do-elenco': '#2' }; // #2: revelação gradual (18/10/2026)
   // 09/11/2026: mata-mata do Draft valendo já hoje (pedido do usuário): o progresso do Draft de hoje recomeça
-  MF.STATE_VER['draft-club'] = '#ko';
+  MF.STATE_VER['draft-club'] = '#ko2'; // 11/11/2026: novo mata-mata (adversários pela força do time) vale já hoje; progresso do Draft de hoje recomeça
   // 21/10/2026: revisão de Normal e Difícil vale já no desafio nº 10 (pedido do usuário); o progresso do dia desses jogos recomeça
   for (const g of ['quem-e-craque', 'lista-ballon-dor', 'craque-secreto', 'descubra-o-card', 'futebol-grid', 'piramide-do-atleta', 'desafio-do-elenco', 'modo-impostor', 'jogo-da-distancia'])
     MF.STATE_VER[g] = (MF.STATE_VER[g] || '') + '#r21';
