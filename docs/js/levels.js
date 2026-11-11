@@ -14,6 +14,7 @@
    - Difícil: jogadores das principais ligas + lendas aposentadas (de 1990 a 2026); nas respostas, nada escancarado
               (sem os craques mais óbvios), mas sem ficar impossível;
    - Lendário: a base de cada jogo.
+   - Lendário (desde 12/11/2026): jogadores pelo menos conhecidos e clubes conhecidos em todos os jogos (ver MF.isLeg).
 
    REVISÃO DE 21/10/2026 (Normal e Difícil mais acessíveis, como no Futbol11, cujo Difícil do Grid só usa gigantes):
    - clubes em faixas fixas e conhecidas (MF.tierSet): Fácil = famosos; Normal = famosos + grandes conhecidos da Europa e do
@@ -121,12 +122,37 @@
   // lenda aposentada de 1990 a 2026 (nada de nome perdido: lenda da curadoria, ícone, Bola de Ouro, campeão do mundo ou nota 84+)
   MF.retLegend = (p) => p.retired && p.lastY >= 1990 && (((p.legend || p.wc) && p.r >= 80) || p.icon || p.bo || p.r >= 84);
   // óbvio demais para ser a resposta no Difícil
-  MF.obvious = (p) => p.bow || p.r >= 92 || ['lionel messi', 'cristiano ronaldo'].includes(p.key);
+  // (11/11/2026, pedido do usuário: Neymar, Mbappé, Messi e CR7 nunca no Difícil — ficam na lista mesmo se a nota mudar)
+  const OBVIOUS = ['lionel messi', 'cristiano ronaldo', 'neymar jr', 'neymar', 'kylian mbappe'];
+  MF.obvious = (p) => p.bow || p.r >= 92 || OBVIOUS.includes(p.key);
+
+  // ------------------------------------------------------------------ Lendário mais leve (11/11/2026, pedido do usuário)
+  // Em todos os jogos, o Lendário passa a usar só jogadores pelo menos conhecidos (nota 83+, ou famoso/lenda/top 10 da Bola de
+  // Ouro 80+, ou lenda aposentada de 1990 para cá) e clubes conhecidos (faixa do Difícil + campeões da Champions e da Europa
+  // League + clubes da 1ª divisão com muitos jogadores relevantes). Continua o nível mais difícil, mas sem nome impossível.
+  // Vale a partir do desafio de 12/11/2026 (MF.today() = 31), para não trocar a resposta de hoje no meio do dia; ?novo antecipa.
+  MF.LEG_FROM = 31;
+  MF.isLeg = () => MF.today() >= MF.LEG_FROM || /[?&]novo\b/.test(location.search);
+  MF.legendOk = (p) => !!p && !p.ext && (MF.known(p) || MF.retLegend(p));
+  let LC = null;
+  MF.legendClubs = () => {
+    if (LC) return LC;
+    const s = new Set(MF.tierSet('hard') || []);
+    for (const c of MF.clubSet('hard') || []) s.add(c);
+    if (MF.levelSets().ready) LC = s;
+    return s;
+  };
+  MF.legendClubOk = (ci) => MF.legendClubs().has(ci);
 
   /** jogador aceito no nível. opt.answer = é a resposta do desafio (no Difícil tira os óbvios) */
   MF.REV = 9; // MF.today() de 21/10/2026 (desafio nº 10): a revisão vale já hoje, a pedido do usuário
   MF.isRev = () => MF.today() >= MF.REV;
   MF.playerOk = (lvl, p, opt) => {
+    if (lvl === 'legend' && MF.isLeg()) {
+      if (!MF.legendOk(p)) return false;
+      if (opt && opt.answer && ((MF.isCanon && !MF.isCanon(p)) || MF.obvious(p))) return false; // resposta: sem os óbvios
+      return true;
+    }
     if (!p || p.ext) return lvl === 'legend';
     if (opt && opt.answer && MF.isCanon && !MF.isCanon(p)) return false; // ficha repetida não vira resposta
     if (lvl === 'easy') return MF.mediatic(p);
@@ -195,7 +221,7 @@
 
   /** filtra uma lista pelo critério do nível; se sobrar pouco (< min), devolve a lista original */
   MF.byLevel = (lvl, list, get, opt) => {
-    if (lvl === 'legend' || !MF.isNew()) return list;
+    if ((lvl === 'legend' && !MF.isLeg()) || !MF.isNew()) return list;
     const g = get || ((x) => x);
     const out = list.filter((x) => MF.playerOk(lvl, g(x), opt));
     return out.length >= ((opt && opt.min) || 12) ? out : list;

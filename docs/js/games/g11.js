@@ -39,10 +39,15 @@
     const { byClub } = MF.data;
     const out = [];
     const hard = lvl === 'hard' && MF.isNew();
-    for (const p of (hard ? hardLegends() : legends()).slice(0, hard ? 320 : TOP[lvl])) {
+    // Lendário (desde 12/11/2026): as 900 lendas de mais prestígio (antes eram todas), passagens de 1 ano ou mais e clubes
+    // com pelo menos 15 jogadores na base — mais difícil que o Difícil (inclui os anos 70 e 80), sem nome impossível
+    const leg = lvl === 'legend' && MF.isLeg();
+    const top = hard ? 320 : leg ? 900 : TOP[lvl], minLen = leg ? 1 : MINLEN[lvl];
+    for (const p of (hard ? hardLegends() : legends()).slice(0, top)) {
       // passagens com datas confiáveis; no Fácil e no Normal só clubes conhecidos; no Difícil só passagens de 1990 para cá
-      const st = p.st.filter((s) => MF.exact(s) && s[2] - s[1] >= MINLEN[lvl] && (!hard || s[2] >= 1990) && (lvl === 'legend' || lvl === 'hard' || byClub[s[0]].length >= (lvl === 'easy' ? 60 : 30)));
-      if (st.length) out.push({ i: p.i, pos: p.pos, st, w: out.length < (hard ? 320 : TOP[lvl]) / 3 ? 2 : 1 });
+      const st = p.st.filter((s) => MF.exact(s) && s[2] - s[1] >= minLen && (!hard || s[2] >= 1990)
+        && (leg ? byClub[s[0]].length >= 15 : lvl === 'legend' || lvl === 'hard' || byClub[s[0]].length >= (lvl === 'easy' ? 60 : 30)));
+      if (st.length) out.push({ i: p.i, pos: p.pos, st, w: out.length < top / 3 ? 2 : 1 });
     }
     return (MF._ondePool[lvl] = out);
   }

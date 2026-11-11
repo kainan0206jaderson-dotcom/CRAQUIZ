@@ -154,7 +154,9 @@
   const BAND0 = { easy: [0, 0.38], normal: [0.22, 0.62], hard: [0.52, 0.92], legend: [0.72, 1] };
   // revisão de 21/10/2026: Normal e Difícil mais acessíveis (o Difícil pegava perguntas que eram de Lendário)
   const BAND1 = { easy: [0, 0.36], normal: [0.14, 0.5], hard: [0.38, 0.76], legend: [0.68, 1] };
-  const bandOf = (l) => (MF.isRev() ? BAND1 : BAND0)[l];
+  // Lendário (desde 12/11/2026): faixa um pouco mais leve (sem as perguntas mais impossíveis)
+  const BAND_LEG = [0.6, 0.94];
+  const bandOf = (l) => (l === 'legend' && MF.isLeg() ? BAND_LEG : (MF.isRev() ? BAND1 : BAND0)[l]);
   // listas de clube/liga com muitos jogadores antigos (pararam antes de 2005 ou nem estão na base) ficam para o Lendário;
   // seleção com 5+ antigos também. Copa do Mundo e Champions podem ter antigos.
   const oldCount = (c) => c.order.slice(0, 10).filter((o) => o.pi < 0 || MF.data.P[o.pi].lastY < 2005).length;
@@ -311,10 +313,12 @@
     // a partir de 16/10/2026: jogadores e clubes das categorias seguem o critério do nível (Lendário mantém a base)
     const NEW = MF.isNew();
     MF._impN = MF._impN || {};
-    const NFor = (l) => MF._impN[l + NEW] || (MF._impN[l + NEW] = NEW && l !== 'legend' ? core.filter((p) => MF.playerOk(l, p)) : core.filter((p) => p.r >= NOTABLE[l] || (l !== 'easy' && p.famous)));
+    // Lendário (desde 12/11/2026): só jogadores pelo menos conhecidos e clubes conhecidos
+    const LEG = MF.isLeg();
+    const NFor = (l) => MF._impN[l + NEW + LEG] || (MF._impN[l + NEW + LEG] = NEW && (l !== 'legend' || LEG) ? core.filter((p) => MF.playerOk(l, p)) : core.filter((p) => p.r >= NOTABLE[l] || (l !== 'easy' && p.famous)));
     const N = NFor(lvl);
     const LVLS = { easy: [0], normal: [0, 1], hard: [1, 2], legend: [2, 3] };
-    const clubsOk = (c, l) => !NEW || l === 'legend' || !c.clubs || c.clubs.every((x) => (MF.isRev() ? MF.tierOk(l, x) : MF.clubOk(l, x)));
+    const clubsOk = (c, l) => !NEW || !c.clubs || (l === 'legend' ? !LEG || c.clubs.every((x) => MF.legendClubOk(x)) : c.clubs.every((x) => (MF.isRev() ? MF.tierOk(l, x) : MF.clubOk(l, x))));
     const okFor = (l) => { const n = NFor(l); return categories().cats.filter((c) => LVLS[l].includes(c.lv) && clubsOk(c, l) && n.filter(c.test).length >= 6 && n.filter((p) => !c.test(p)).length >= 10); };
     // desde 16/10/2026: 4 de cada 5 dias são perguntas de números (rankings, temporadas, artilharias, títulos);
     // no outro dia volta uma categoria clássica (clube, seleção, liga…)

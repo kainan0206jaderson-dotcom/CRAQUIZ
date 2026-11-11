@@ -135,7 +135,11 @@
     const inLv = NEW
       ? (c, l) => (l === 'legend' ? true : l === 'hard' ? c.lv === 1 || c.lv === 2 : c.lv <= LVN[l])
       : (c, l) => (l === 'legend' ? true : l === 'hard' ? c.lv >= 1 : c.lv <= LVN[l]);
-    return { key: NEW ? 'g6-top10' : 'g6-pyr3', catsFor: (l) => all.filter((c) => inLv(c, l) && (c.fixed || distinct(c) >= 10)) };
+    // Lendário (desde 12/11/2026): listas do Difícil e do Lendário (nível 2 ou 3), mas com no máximo 2 nomes de fora da base
+    // (jogadores antigos que quase ninguém conhece) — continua o mais difícil, sem lista impossível
+    const LEG = MF.isLeg();
+    const inLv2 = (c, l) => (l === 'legend' && LEG ? c.lv >= 2 && c.items.filter((x) => x.pi < 0).length <= 2 : inLv(c, l));
+    return { key: NEW ? 'g6-top10' : 'g6-pyr3', catsFor: (l) => all.filter((c) => inLv2(c, l) && (c.fixed || distinct(c) >= 10)) };
   }
   function pyrDaily(lvl) { const g = pyrGame(); return MF.dailyPick(g.key, lvl, g.catsFor, (c) => c.key); }
   MF._pyrHist = () => { const g = pyrGame(); pyrDaily('normal'); return MF.dailyHist(g.key) || []; };

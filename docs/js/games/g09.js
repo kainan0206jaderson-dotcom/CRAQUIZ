@@ -67,7 +67,7 @@
       const base = (l) => P.slice(0, MF.CORE_N).filter((p) => MF.era(p) && p.st.length >= 2 && !p.natGuess && (!REV || (MF.active(p) && MF.isCanon(p))));
       // a partir de 16/10/2026: o jogador secreto segue o critério do nível (Difícil sem os óbvios); Lendário mantém a base
       const poolFor = NEW
-        ? (l) => (l === 'legend' ? base(l).filter((p) => p.r >= MINS[l]) : base(l).filter((p) => MF.playerOk(l, p, { answer: true }))).map((p) => p.i)
+        ? (l) => (l === 'legend' && !MF.isLeg() ? base(l).filter((p) => p.r >= MINS[l]) : base(l).filter((p) => MF.playerOk(l, p, { answer: true }))).map((p) => p.i)
         : (l) => base(l).filter((p) => p.r >= MINS[l] && (l !== 'easy' || p.famous)).map((p) => p.i);
       const target = P[MF.dailyPick(REV ? 'g9-dist5' : NEW ? 'g9-dist4' : 'g9-dist3', lvl, poolFor)];
       MF._distLast = target; // (testes)

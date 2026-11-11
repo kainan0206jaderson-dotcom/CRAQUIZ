@@ -47,7 +47,8 @@
       const { games, P, clubs, leagues } = MF.data;
       const st = ctx.state;
       const lvl = MF.level(st);
-      const OK = { easy: (c) => c[2] >= 86, normal: (c) => c[2] >= 80, hard: () => true, legend: (c) => c[2] < 85 };
+      // Lendário (desde 12/11/2026): carta de jogador conhecido (o filtro do nível tira os desconhecidos e os óbvios)
+      const OK = { easy: (c) => c[2] >= 86, normal: (c) => c[2] >= 80, hard: () => true, legend: MF.isLeg() ? (c) => c[2] >= 78 : (c) => c[2] < 85 };
       // a resposta é o jogador: cartas diferentes do mesmo jogador não se repetem em dias próximos
       // cartas do EA FC 25 e 26 entram a partir do desafio nº 4 (15/10/2026); antes disso, o sorteio fica como era
       const NEW = MF.today() >= 3;

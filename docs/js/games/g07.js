@@ -60,11 +60,12 @@
     // revisão de 21/10/2026: Normal = 2026/27 dos clubes famosos e grandes conhecidos; Difícil = 2026/27 dos clubes
     // tradicionais da 1ª divisão + temporadas de 2015/16 em diante dos clubes famosos (sem time desconhecido nem elenco antigo)
     const tier = (q, l) => q.c.some((i) => MF.tierOk(l, i));
+    // Lendário (desde 12/11/2026): qualquer temporada desde 1995/96, mas só de clubes conhecidos
     const f = MF.isRev() ? {
       easy: (q) => cur(q) && any(q, 'easy'),
       normal: (q) => cur(q) && tier(q, 'normal'),
       hard: (q) => (cur(q) && tier(q, 'hard')) || (q.s >= 2015 && tier(q, 'easy')),
-      legend: () => true,
+      legend: MF.isLeg() ? (q) => q.s >= 1995 && q.c.some((i) => MF.legendClubOk(i)) : () => true,
     }[lvl] : {
       easy: (q) => cur(q) && any(q, 'easy'),
       normal: (q) => cur(q) && any(q, 'normal'),

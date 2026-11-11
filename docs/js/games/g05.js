@@ -21,7 +21,10 @@ const LEVEL = { easy: [0, 25, 0, 6], normal: [0, 80, 60, 3], hard: [40, 260, 25,
   MF.criteria = (mode) => {
     const NEW = MF.isNew() && mode !== 'legend';
     const REV = NEW && MF.isRev() && (mode === 'normal' || mode === 'hard');
-    const key = 'crit:' + mode + (NEW ? ':n' : '') + (REV ? ':r' : '');
+    // Lendário (desde 12/11/2026): clubes conhecidos (faixa do Difícil + campeões europeus + 1ª divisão com muitos jogadores
+    // relevantes), linhas com clubes da faixa do Difícil, seleções conhecidas e 2+ respostas por casa
+    const LEG = mode === 'legend' && MF.isLeg();
+    const key = 'crit:' + mode + (NEW ? ':n' : '') + (REV ? ':r' : '') + (LEG ? ':L' : '');
     MF._crit = MF._crit || {};
     if (MF._crit[key]) return MF._crit[key];
     const { P, clubs } = MF.data;
@@ -35,7 +38,12 @@ const LEVEL = { easy: [0, 25, 0, 6], normal: [0, 80, 60, 3], hard: [40, 260, 25,
     const [c0, c1, mn] = LEVEL[mode] || LEVEL.normal;
     let cl, na, rw;
     const crit = (i) => ({ type: 'club', id: i, label: clubs[i].n, set: new Set(byClub[i]) });
-    if (REV) {
+    if (LEG) {
+      const known = MF.legendClubs(), rowT = MF.tierSet('hard');
+      cl = [...known].filter((i) => clubs[i] && byClub[i].length >= 12).map(crit);
+      rw = cl.filter((c) => rowT.has(c.id));
+      na = REV_NATS.normal.concat(REV_NATS.hard).filter((n) => byNat.has(n)).map((n) => ({ type: 'nat', id: n, label: n, set: new Set(byNat.get(n)) }));
+    } else if (REV) {
       const tier = MF.tierSet(mode);
       cl = [...tier].filter((i) => clubs[i] && byClub[i].length >= (mode === 'normal' ? 25 : 15)).map(crit);
       const rowT = MF.tierSet('normal');
@@ -57,7 +65,7 @@ const LEVEL = { easy: [0, 25, 0, 6], normal: [0, 80, 60, 3], hard: [40, 260, 25,
       cl = rank.map((i) => ({ type: 'club', id: i, label: clubs[i].n, set: new Set(byClub[i]) }));
       na = [...byNat.entries()].filter(([, v]) => v.length >= mn).map(([n, v]) => ({ type: 'nat', id: n, label: n, set: new Set(v) }));
     }
-    return (MF._crit[key] = { cl, na, rw: rw || cl, min: REV ? REV_MIN[mode] : null });
+    return (MF._crit[key] = { cl, na, rw: rw || cl, min: REV ? REV_MIN[mode] : LEG ? 2 : null });
   };
   const inter = (a, b) => { let n = 0; const [s, l] = a.size < b.size ? [a, b] : [b, a]; for (const x of s) if (l.has(x)) n++; return n; };
   MF.critLabel = (c, size) => c.type === 'club'

@@ -24,11 +24,13 @@
   function pools(lvl) {
     MF._w2 = MF._w2 || {};
     const NEW = MF.isNew();
-    const ck = lvl + (NEW ? ':n' : '');
+    const LEG = lvl === 'legend' && MF.isLeg();
+    const ck = lvl + (NEW ? ':n' : '') + (LEG ? ':L' : '');
     if (MF._w2[ck]) return MF._w2[ck];
     const [ok0, lo, hi] = LV[lvl] || LV.normal;
     // a partir de 16/10/2026: palavra do dia pelo critério de jogadores do nível (no Lendário, a base de sempre)
-    const ok = NEW && lvl !== 'legend' ? (p) => MF.playerOk(lvl, p, { answer: true }) : ok0;
+    // desde 12/11/2026 o Lendário também segue o critério (jogadores pelo menos conhecidos, sem os óbvios)
+    const ok = NEW && (lvl !== 'legend' || LEG) ? (p) => MF.playerOk(lvl, p, { answer: true }) : ok0;
     const words = new Map();
     for (const p of MF.data.P.slice(0, MF.CORE_N)) {
       if (!MF.era(p) || !ok(p)) continue;
