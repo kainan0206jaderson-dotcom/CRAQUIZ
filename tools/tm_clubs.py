@@ -1,4 +1,4 @@
-"""MUNDOFUT10 — etapa 2: identifica os clubes (o Transfermarkt escreve o mesmo clube de formas diferentes:
+"""CRAQUIZ — etapa 2: identifica os clubes (o Transfermarkt escreve o mesmo clube de formas diferentes:
 'Cruzeiro Esporte Clube' na página do clube e 'Cruzeiro' na lista de transferências de outro).
 
 Aprende as equivalências pelos pares espelhados (a mesma transferência aparece na página dos dois clubes),

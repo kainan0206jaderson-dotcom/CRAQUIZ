@@ -1,4 +1,4 @@
-"""MUNDOFUT10 — etapa 5: seleção principal de cada jogador (jogos e gols), pelos dados do Transfermarkt (salimt).
+"""CRAQUIZ — etapa 5: seleção principal de cada jogador (jogos e gols), pelos dados do Transfermarkt (salimt).
 Cada país tem várias equipes (principal, sub-21, sub-20...): a principal é a de maior número de jogos por atleta."""
 import collections, json
 import pandas as pd

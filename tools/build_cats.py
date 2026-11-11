@@ -1,4 +1,4 @@
-"""MUNDOFUT10 — dados de Copa do Mundo para Pirâmide e Impostor (sem nada de videogame).
+"""CRAQUIZ — dados de Copa do Mundo para Pirâmide e Impostor (sem nada de videogame).
 
 Fontes: jfjelstul/worldcup (gols, jogos e elencos de todas as Copas até 2022) e openfootball/worldcup.json (Copa 2026).
 Grava em docs/data/games.json:

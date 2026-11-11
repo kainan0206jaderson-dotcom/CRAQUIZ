@@ -1,4 +1,4 @@
-"""MUNDOFUT10 — acrescenta as cartas do EA FC 25 e do EA FC 26 ao "Descubra o card" (games.json → "cards").
+"""CRAQUIZ — acrescenta as cartas do EA FC 25 e do EA FC 26 ao "Descubra o card" (games.json → "cards").
 
 Fontes (bases públicas no GitHub, com os dados oficiais das cartas):
   - EA FC 26: github.com/ismailoksuz/EAFC26-DataHub  (data/players.csv, formato sofifa, atualização de 19/09/2025)

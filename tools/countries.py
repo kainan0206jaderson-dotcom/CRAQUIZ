@@ -1,4 +1,4 @@
-"""MUNDOFUT10 — países: nome canônico (o mesmo da base antiga e das bandeiras), código ISO da bandeira, português, espanhol."""
+"""CRAQUIZ — países: nome canônico (o mesmo da base antiga e das bandeiras), código ISO da bandeira, português, espanhol."""
 
 # variantes vindas do Transfermarkt -> nome canônico
 CANON = {

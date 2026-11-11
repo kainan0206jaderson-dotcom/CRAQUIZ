@@ -1,4 +1,4 @@
-/* MUNDOFUT10 — roteador, página inicial (campo com os 11 jogos) e moldura comum dos jogos */
+/* CRAQUIZ — roteador, página inicial (campo com os 11 jogos) e moldura comum dos jogos */
 (function () {
   'use strict';
   const MF = (window.MF = window.MF || {});

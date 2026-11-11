@@ -1,11 +1,11 @@
-"""MUNDOFUT10 — etapa final: monta docs/data/db.json (base principal) e docs/data/ext.json (todos os demais jogadores).
+"""CRAQUIZ — etapa final: monta docs/data/db.json (base principal) e docs/data/ext.json (todos os demais jogadores).
 
 Junta: carreiras do Transfermarkt (etapas 1–4), seleções (tm_nat), valor de mercado (mv.json),
 a base curada antiga (lendas anteriores a 1992, apelidos, prêmios) e os elencos 2026/27 (draft.json).
 
 Formato de cada jogador (db.json, lista "players"):
   0 nome, 1 apelidos/nomes completos, 2 nome de guerra, 3 seleção, 4 ano de nascimento, 5 posição, 6 posições ("A/B"),
-  7 nota MUNDOFUT (0–99, calculada; não é nota de videogame), 8 passagens [[clube, início, fim, flags]],
+  7 nota CRAQUIZ (0–99, calculada; não é nota de videogame), 8 passagens [[clube, início, fim, flags]],
   9 marcas (1 lenda, 2 famoso, 4 top-10 Bola de Ouro, 8 venceu a Bola de Ouro, 16 campeão do mundo, 32 aposentado),
   10 altura, 11 pé, 12 (reservado), 13 jogos pela seleção, 14 gols pela seleção, 15 maior valor de mercado (€ mi), 16 ID Transfermarkt
 flags da passagem: 1 início aproximado, 2 fim aproximado, 4 empréstimo
@@ -390,7 +390,7 @@ def main():
             st.append(list(s_))
         q['st'] = st
 
-    # ---------------------------------------------------------------- nota MUNDOFUT e marcas
+    # ---------------------------------------------------------------- nota CRAQUIZ e marcas
     BIG = {13, 53, 31, 19, 16}
     BIGCLUB = set()
     for n in ['Real Madrid', 'Barcelona', 'Atlético de Madrid', 'Manchester United', 'Manchester City', 'Liverpool', 'Chelsea', 'Arsenal', 'Tottenham', 'Bayern de Munique',
@@ -499,7 +499,7 @@ def main():
     for lid in {c[1] for c in clubs}:
         if lid not in leagues and lid:
             leagues[lid] = 'Outra'
-    db = {'v': 'tm-2026.10', 'source': 'Transfermarkt (perfis, transferências e seleções) + base curada MUNDOFUT10', 'leagues': {str(k): v for k, v in leagues.items()},
+    db = {'v': 'tm-2026.10', 'source': 'Transfermarkt (perfis, transferências e seleções) + base curada CRAQUIZ', 'leagues': {str(k): v for k, v in leagues.items()},
           'clubs': [[c[0], c[1], c[2] or '', c[3] or ''] for c in clubs], 'players': core_rows}
     json.dump(db, open(os.path.join(OUT, 'db.json'), 'w'), ensure_ascii=False, separators=(',', ':'))
     json.dump({'v': db['v'], 'players': ext_rows}, open(os.path.join(OUT, 'ext.json'), 'w'), ensure_ascii=False, separators=(',', ':'))

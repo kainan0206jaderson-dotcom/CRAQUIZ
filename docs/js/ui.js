@@ -1,4 +1,4 @@
-/* MUNDOFUT10 — componentes de interface */
+/* CRAQUIZ — componentes de interface */
 (function () {
   'use strict';
   const MF = (window.MF = window.MF || {});

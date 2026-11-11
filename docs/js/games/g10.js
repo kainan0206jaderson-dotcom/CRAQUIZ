@@ -3,7 +3,7 @@
    que já passou por esse clube — lenda ou atual (base do Transfermarkt + lendas curadas).
    Ligações entre vizinhos dão a química: verde = já jogaram no mesmo clube, ou mesma seleção e mesma liga; laranja = mesma
    seleção ou mesma liga; vermelho = nada em comum. Jogador fora da posição perde química.
-   Pontuação draft = nota do time + química (até 100). Notas MUNDOFUT: calculadas a partir de valor de mercado, seleção,
+   Pontuação draft = nota do time + química (até 100). Notas CRAQUIZ: calculadas a partir de valor de mercado, seleção,
    anos em grandes ligas e prêmios (não são notas de videogame).
    Dificuldade (desde 15/10/2026): Fácil = clubes famosos e 3 trocas; Normal = famosos + campeões da Champions, 2 trocas;
    Difícil = campeões da Champions e da Europa League + clubes conhecidos da 1ª divisão, 1 troca; Lendário = clubes menores, sem trocas.

@@ -1,4 +1,4 @@
-"""MUNDOFUT10 — etapa 3: identifica os jogadores e monta as carreiras (passagens por clube) a partir das transferências.
+"""CRAQUIZ — etapa 3: identifica os jogadores e monta as carreiras (passagens por clube) a partir das transferências.
 
 Linhas com ID do Transfermarkt (eordo, d2ski) dão a identidade; as linhas da tim-hy (sem ID) são ligadas a um ID
 pelo nome + ano de nascimento (temporada − idade na transferência). O que sobrar vira um jogador próprio.

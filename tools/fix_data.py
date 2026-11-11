@@ -1,4 +1,4 @@
-"""MUNDOFUT10 — correções da base (21/10/2026). Roda depois do tm_build.py:
+"""CRAQUIZ — correções da base (21/10/2026). Roda depois do tm_build.py:
 
     python3 tools/fix_data.py [caminho/player_profiles.csv]
 

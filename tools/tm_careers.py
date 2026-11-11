@@ -1,4 +1,4 @@
-"""MUNDOFUT10 — etapa 4: transforma os movimentos de cada jogador em passagens [clube, ano início, ano fim, flags].
+"""CRAQUIZ — etapa 4: transforma os movimentos de cada jogador em passagens [clube, ano início, ano fim, flags].
 
 flags: 1 = início aproximado, 2 = fim aproximado, 4 = empréstimo
 Regras: times B/sub-23/base não contam como o clube principal; "Retired" encerra a carreira;

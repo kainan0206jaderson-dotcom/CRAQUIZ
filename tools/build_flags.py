@@ -1,4 +1,4 @@
-"""MUNDOFUT10 — bandeiras (PNG 40×29 em data URI) para todos os países da base, a partir do pacote aberto lipis/flag-icons (MIT)."""
+"""CRAQUIZ — bandeiras (PNG 40×29 em data URI) para todos os países da base, a partir do pacote aberto lipis/flag-icons (MIT)."""
 import base64, json, os, sys
 from playwright.sync_api import sync_playwright
 from countries import INFO, canon

@@ -1,4 +1,4 @@
-"""MUNDOFUT10 — Desafio do elenco (jogo 7, 18/10/2026). Grava docs/data/squads.json.
+"""CRAQUIZ — Desafio do elenco (jogo 7, 18/10/2026). Grava docs/data/squads.json.
 
 Cada desafio = um clube numa temporada + as nacionalidades do elenco (com os nomes, mostrados no fim):
   {"c": [índices do clube na base], "s": ano de início da temporada, "cal": 1 se a liga é de ano-calendário (Brasil/Argentina),

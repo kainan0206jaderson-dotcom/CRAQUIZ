@@ -1,4 +1,4 @@
-/* MUNDOFUT10 — estádio 3D (Three.js r128).
+/* CRAQUIZ — estádio 3D (Three.js r128).
    A câmera desce das nuvens, passa sobre a torcida e pousa na pose da tela inicial:
    a própria cena vira a escalação (sem corte). As 11 camisas são malhas de "tecido" no gramado. */
 (function () {

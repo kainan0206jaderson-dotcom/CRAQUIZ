@@ -1,4 +1,4 @@
-"""MUNDOFUT10 — critérios por dificuldade (15/10/2026). Grava em docs/data/games.json:
+"""CRAQUIZ — critérios por dificuldade (15/10/2026). Grava em docs/data/games.json:
 
   "levels": {
     "famous": clubes famosos e principais do esporte          -> Fácil

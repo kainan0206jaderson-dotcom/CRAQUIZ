@@ -1,4 +1,4 @@
-"""MUNDOFUT10 — etapa 1: junta as bases do Transfermarkt num único formato de "movimentos".
+"""CRAQUIZ — etapa 1: junta as bases do Transfermarkt num único formato de "movimentos".
 
 Fontes (todas raspadas do transfermarkt.com e publicadas no GitHub):
   - tim-hy/tmarkt-transfers   : transferências das 25 principais ligas do mundo (1992–2022), sem ID de jogador

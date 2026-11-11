@@ -1,4 +1,4 @@
-/* MUNDOFUT10 — textos em português (padrão), inglês e espanhol */
+/* CRAQUIZ — textos em português (padrão), inglês e espanhol */
 (function () {
   'use strict';
   const MF = (window.MF = window.MF || {});

@@ -1,4 +1,4 @@
-/* MUNDOFUT10 — núcleo: dia do desafio, sorteio sem repetição, dados, idiomas, armazenamento */
+/* CRAQUIZ — núcleo: dia do desafio, sorteio sem repetição, dados, idiomas, armazenamento */
 (function () {
   'use strict';
   const MF = (window.MF = window.MF || {});

@@ -1,4 +1,4 @@
-/* MUNDOFUT10 — critérios por dificuldade (pedido de 15/10/2026), valem em todos os jogos, menos no "Jogou por onde?" (só lendas)
+/* CRAQUIZ — critérios por dificuldade (pedido de 15/10/2026), valem em todos os jogos, menos no "Jogou por onde?" (só lendas)
    e no nível Lendário (cada jogo mantém a sua base).
 
    CLUBES
@@ -107,7 +107,7 @@
     const c = MF.curClub(p);
     return c != null && s.top.has(c);
   };
-  // conhecido na mídia: craques (nota MUNDOFUT 86+), top 10 da Bola de Ouro e ícones
+  // conhecido na mídia: craques (nota CRAQUIZ 86+), top 10 da Bola de Ouro e ícones
   MF.mediatic = (p) => p.r >= 86 || p.bo || p.bow || p.icon;
   // conhecido: nota 83+ ou marcado como famoso/lenda/top 10 da Bola de Ouro com nota 80+
   MF.known = (p) => p.r >= 83 || ((p.famous || p.legend || p.bo) && p.r >= 80);

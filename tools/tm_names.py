@@ -1,4 +1,4 @@
-"""MUNDOFUT10 — nomes de exibição dos clubes (curtos, como o brasileiro fala) e ligação com os clubes da base antiga."""
+"""CRAQUIZ — nomes de exibição dos clubes (curtos, como o brasileiro fala) e ligação com os clubes da base antiga."""
 import re
 from tm_load import norm
 
