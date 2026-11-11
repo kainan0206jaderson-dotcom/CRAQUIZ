@@ -14,7 +14,7 @@
    - Difícil: jogadores das principais ligas + lendas aposentadas (de 1990 a 2026); nas respostas, nada escancarado
               (sem os craques mais óbvios), mas sem ficar impossível;
    - Lendário: a base de cada jogo.
-   - Lendário (desde 12/11/2026): jogadores pelo menos conhecidos e clubes conhecidos em todos os jogos (ver MF.isLeg).
+   - Lendário (desde 11/11/2026): jogadores pelo menos conhecidos e clubes conhecidos em todos os jogos (ver MF.isLeg).
 
    REVISÃO DE 21/10/2026 (Normal e Difícil mais acessíveis, como no Futbol11, cujo Difícil do Grid só usa gigantes):
    - clubes em faixas fixas e conhecidas (MF.tierSet): Fácil = famosos; Normal = famosos + grandes conhecidos da Europa e do
@@ -130,8 +130,8 @@
   // Em todos os jogos, o Lendário passa a usar só jogadores pelo menos conhecidos (nota 83+, ou famoso/lenda/top 10 da Bola de
   // Ouro 80+, ou lenda aposentada de 1990 para cá) e clubes conhecidos (faixa do Difícil + campeões da Champions e da Europa
   // League + clubes da 1ª divisão com muitos jogadores relevantes). Continua o nível mais difícil, mas sem nome impossível.
-  // Vale a partir do desafio de 12/11/2026 (MF.today() = 31), para não trocar a resposta de hoje no meio do dia; ?novo antecipa.
-  MF.LEG_FROM = 31;
+  // Vale a partir do desafio de 11/11/2026 (MF.today() = 30).
+  MF.LEG_FROM = 30; // antecipado para hoje (11/11/2026), a pedido do usuário; o progresso de hoje desses níveis recomeça (core.js)
   MF.isLeg = () => MF.today() >= MF.LEG_FROM || /[?&]novo\b/.test(location.search);
   MF.legendOk = (p) => !!p && !p.ext && (MF.known(p) || MF.retLegend(p));
   let LC = null;

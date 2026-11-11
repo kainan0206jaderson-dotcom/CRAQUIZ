@@ -156,9 +156,14 @@
   // 21/10/2026: revisão de Normal e Difícil vale já no desafio nº 10 (pedido do usuário); o progresso do dia desses jogos recomeça
   for (const g of ['quem-e-craque', 'lista-ballon-dor', 'craque-secreto', 'descubra-o-card', 'futebol-grid', 'piramide-do-atleta', 'desafio-do-elenco', 'modo-impostor', 'jogo-da-distancia'])
     MF.STATE_VER[g] = (MF.STATE_VER[g] || '') + '#r21';
-  const gk = (game) => game + (MF.STATE_VER[game] || '');
-  MF.dayState = (game, lvl) => MF.load('d3:' + gk(game) + ':' + (lvl || 'normal') + ':' + MF.today(), null);
-  MF.saveDayState = (game, st) => MF.save('d3:' + gk(game) + ':' + ((st && st.opts && st.opts.mode) || 'normal') + ':' + MF.today(), st);
+  // versão por nível (11/11/2026): o Lendário de todos os jogos (menos a Lista Ballon d'Or) e o Difícil do Draft mudaram
+  // no meio do dia, a pedido do usuário; só o progresso de hoje desses níveis recomeça (Fácil e Normal ficam como estão)
+  MF.STATE_VER_LV = { 'draft-club:hard': '#L11' };
+  for (const g of ['quem-e-craque', 'craque-secreto', 'descubra-o-card', 'futebol-grid', 'piramide-do-atleta', 'desafio-do-elenco',
+    'modo-impostor', 'jogo-da-distancia', 'draft-club', 'jogou-por-onde']) MF.STATE_VER_LV[g + ':legend'] = '#L11';
+  const gk = (game, lvl) => game + (MF.STATE_VER[game] || '') + (MF.STATE_VER_LV[game + ':' + lvl] || '');
+  MF.dayState = (game, lvl) => MF.load('d3:' + gk(game, lvl || 'normal') + ':' + (lvl || 'normal') + ':' + MF.today(), null);
+  MF.saveDayState = (game, st) => { const l = (st && st.opts && st.opts.mode) || 'normal'; return MF.save('d3:' + gk(game, l) + ':' + l + ':' + MF.today(), st); };
   MF.dayStates = (game) => {
     const out = {};
     for (const l of MF.LEVELS) { const s = MF.dayState(game, l); if (s) out[l] = s; }
