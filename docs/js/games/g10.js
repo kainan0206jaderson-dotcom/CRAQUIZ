@@ -43,12 +43,18 @@
   const fits = (p, pos) => (NEAR[pos] || [pos]).includes(p.pos) || p.allpos.some((a) => (NEAR[pos] || [pos]).includes(a));
   const line = (pos) => MF.line(pos);
   // mata-mata: 4 rodadas a partir das oitavas; cada adversário é montado para ter a pontuação-alvo da rodada (t)
+  // a meta de cada rodada = pontuação do seu time + desvio da rodada (off), com variação aleatória.
+  // O adversário fica um pouco mais fraco nas primeiras rodadas e um pouco mais forte na final, e o nível do seu time
+  // puxa a meta levemente para baixo quando ele é forte (e para cima quando é fraco): um time forte tem mais chances,
+  // um time médio ainda chega à final, e nada é impossível.
   const KN = [
-    { k: 'knR16', t: 145 },
-    { k: 'knQF', t: 160 },
-    { k: 'knSF', t: 172 },
-    { k: 'knF', t: 182 },
+    { k: 'knR16', off: -4 },
+    { k: 'knQF', off: -3 },
+    { k: 'knSF', off: -2 },
+    { k: 'knF', off: -1 },
   ];
+  const KN_REL = 0.15, KN_MID = 150, KN_SD = 4, KN_OVR = 0.25;
+  const gauss = (rnd) => Math.sqrt(-2 * Math.log(Math.max(1e-9, rnd()))) * Math.cos(2 * Math.PI * rnd());
 
   // clubes sorteáveis por dificuldade: quantidade de jogadores relevantes que passaram por ele (base principal)
   // 15/10/2026: no Draft os critérios novos já valem hoje (pedido do usuário), não só a partir de 16/10
@@ -139,18 +145,20 @@
     });
     return team.includes(null) ? null : team;
   }
-  // monta o caminho do mata-mata: um adversário por rodada, o time sorteado mais perto da pontuação-alvo daquela rodada
+  // monta o caminho do mata-mata: um adversário por rodada, de qualidade parecida com o seu time (nota e pontuação)
   function makeKnockout(st, pool, seed) {
     const rnd = MF.rng(seed + ':kn');
     const { P } = MF.data;
+    const me = rate(st.team, st.form);
     const path = [];
     KN.forEach((rd) => {
+      const target = me.score + rd.off - KN_REL * (me.score - KN_MID) + gauss(rnd) * KN_SD;
       let best = null;
       for (let i = 0; i < 240; i++) {
         const team = oppXI(st.form, pool, rnd);
         if (!team) continue;
         const r = rate(team, st.form);
-        const d = Math.abs(r.score - rd.t) + rnd() * 3;
+        const d = Math.abs(r.score - target) + KN_OVR * Math.abs(r.ovr - me.ovr) + rnd() * 2;
         if (!best || d < best.d) best = { d, team, score: r.score, ovr: r.ovr, chem: r.chem };
       }
       if (best) {
@@ -241,9 +249,9 @@
   MF.registerGame({
     num: 10, slug: 'draft-club',
     rules: {
-      pt: ['Escolha 1 de 5 formações. Em cada rodada um clube é sorteado: toque na posição que quiser e digite um jogador que já passou por esse clube — lenda ou atual. A busca mostra todos os jogadores da base: se escolher alguém que nunca jogou no clube, conta 1 erro; no 3º erro o draft acaba.', 'As linhas entre vizinhos mostram a química: verde = já jogaram num mesmo clube, ou mesma seleção e mesma liga; laranja = mesma seleção ou mesma liga; vermelho = nada em comum. Fora da posição, o jogador perde química. Toque num jogador escalado e depois noutra posição para trocá-los.', 'Pontuação draft = nota do time + química (até 100). As notas são do CRAQUIZ (valor de mercado, seleção, anos em grandes ligas e prêmios).', 'Fácil: só clubes famosos e 3 trocas de clube. Normal: os famosos e os campeões da Champions, 2 trocas. Difícil: campeões da Champions e da Europa League e clubes conhecidos da 1ª divisão, 1 troca. Lendário: clubes menores e nenhuma troca. Ajuda: uma vez por partida, sugere um jogador do clube da rodada.', 'Mata-mata: com os 11 escalados, seu time entra num mata-mata de 4 rodadas, começando nas oitavas. Em cada partida, a pontuação draft do seu time é comparada à do adversário: a maior passa, a menor cai (empate vai para os pênaltis). Campeão = vence as 4.'],
-      en: ['Pick 1 of 5 formations. Each round a club is drawn: tap the position you want and type a player who ever played for that club — legend or current. The search lists every player in the database: picking someone who never played there is a miss; 3 misses end the draft.', 'Lines between neighbours show chemistry: green = they shared a club, or same nation and league; orange = same nation or league; red = nothing in common. Out of position, a player loses chemistry. Tap a player, then another position, to swap them.', 'Draft score = team rating + chemistry (up to 100). Ratings are CRAQUIZ’s own (market value, caps, years in big leagues and awards).', 'Easy: famous clubs only and 3 club rerolls. Normal: the famous ones plus Champions League winners, 2 rerolls. Hard: Champions League and Europa League winners and well-known top-flight clubs, 1 reroll. Legendary: smaller clubs and no rerolls. Help: once per game, suggests a player from the club of the round.', 'Knockout: with all 11 picked, your team enters a 4-round knockout, starting at the round of 16. In each match your draft score is compared to the opponent’s: the higher one advances, the lower one goes out (a draw goes to penalties). Champions = win all 4.'],
-      es: ['Elige 1 de 5 formaciones. En cada ronda se sortea un club: toca la posición que quieras y escribe un jugador que haya pasado por ese club — leyenda o actual. La búsqueda muestra a todos los jugadores de la base: si eliges a alguien que nunca jugó allí, cuenta 1 error; con 3 errores termina el draft.', 'Las líneas entre vecinos muestran la química: verde = compartieron club, o misma selección y liga; naranja = misma selección o liga; rojo = nada en común. Fuera de posición, el jugador pierde química. Toca un jugador y luego otra posición para cambiarlos.', 'Puntuación draft = media del equipo + química (hasta 100). Las medias son de CRAQUIZ (valor de mercado, selección, años en grandes ligas y premios).', 'Fácil: solo clubes famosos y 3 cambios de club. Normal: los famosos y los campeones de la Champions, 2 cambios. Difícil: campeones de la Champions y la Europa League y clubes conocidos de primera, 1 cambio. Legendario: clubes más pequeños y sin cambios. Ayuda: una vez por partida, sugiere un jugador del club de la ronda.', 'Eliminatoria: con los 11 elegidos, tu equipo entra en una eliminatoria de 4 rondas, desde los octavos. En cada partido, la puntuación draft de tu equipo se compara con la del rival: la mayor avanza, la menor cae (empate va a penaltis). Campeón = gana las 4.'],
+      pt: ['Escolha 1 de 5 formações. Em cada rodada um clube é sorteado: toque na posição que quiser e digite um jogador que já passou por esse clube — lenda ou atual. A busca mostra todos os jogadores da base: se escolher alguém que nunca jogou no clube, conta 1 erro; no 3º erro o draft acaba.', 'As linhas entre vizinhos mostram a química: verde = já jogaram num mesmo clube, ou mesma seleção e mesma liga; laranja = mesma seleção ou mesma liga; vermelho = nada em comum. Fora da posição, o jogador perde química. Toque num jogador escalado e depois noutra posição para trocá-los.', 'Pontuação draft = nota do time + química (até 100). As notas são do CRAQUIZ (valor de mercado, seleção, anos em grandes ligas e prêmios).', 'Fácil: só clubes famosos e 3 trocas de clube. Normal: os famosos e os campeões da Champions, 2 trocas. Difícil: campeões da Champions e da Europa League e clubes conhecidos da 1ª divisão, 1 troca. Lendário: clubes menores e nenhuma troca. Ajuda: uma vez por partida, sugere um jogador do clube da rodada.', 'Mata-mata: com os 11 escalados, seu time entra num mata-mata de 4 rodadas, começando nas oitavas. Em cada partida, a pontuação draft do seu time é comparada à do adversário: a maior passa, a menor cai (empate vai para os pênaltis). Campeão = vence as 4. Os adversários são sorteados de acordo com a força do seu time: quanto mais forte o seu time, mais forte o adversário, mas sempre com chance de vitória. A final é a partida mais difícil.'],
+      en: ['Pick 1 of 5 formations. Each round a club is drawn: tap the position you want and type a player who ever played for that club — legend or current. The search lists every player in the database: picking someone who never played there is a miss; 3 misses end the draft.', 'Lines between neighbours show chemistry: green = they shared a club, or same nation and league; orange = same nation or league; red = nothing in common. Out of position, a player loses chemistry. Tap a player, then another position, to swap them.', 'Draft score = team rating + chemistry (up to 100). Ratings are CRAQUIZ’s own (market value, caps, years in big leagues and awards).', 'Easy: famous clubs only and 3 club rerolls. Normal: the famous ones plus Champions League winners, 2 rerolls. Hard: Champions League and Europa League winners and well-known top-flight clubs, 1 reroll. Legendary: smaller clubs and no rerolls. Help: once per game, suggests a player from the club of the round.', 'Knockout: with all 11 picked, your team enters a 4-round knockout, starting at the round of 16. In each match your draft score is compared to the opponent’s: the higher one advances, the lower one goes out (a draw goes to penalties). Champions = win all 4. Opponents are drawn to match your team’s strength: the stronger your side, the stronger the opponent, but there is always a real chance to win. The final is the toughest match.'],
+      es: ['Elige 1 de 5 formaciones. En cada ronda se sortea un club: toca la posición que quieras y escribe un jugador que haya pasado por ese club — leyenda o actual. La búsqueda muestra a todos los jugadores de la base: si eliges a alguien que nunca jugó allí, cuenta 1 error; con 3 errores termina el draft.', 'Las líneas entre vecinos muestran la química: verde = compartieron club, o misma selección y liga; naranja = misma selección o liga; rojo = nada en común. Fuera de posición, el jugador pierde química. Toca un jugador y luego otra posición para cambiarlos.', 'Puntuación draft = media del equipo + química (hasta 100). Las medias son de CRAQUIZ (valor de mercado, selección, años en grandes ligas y premios).', 'Fácil: solo clubes famosos y 3 cambios de club. Normal: los famosos y los campeones de la Champions, 2 cambios. Difícil: campeones de la Champions y la Europa League y clubes conocidos de primera, 1 cambio. Legendario: clubes más pequeños y sin cambios. Ayuda: una vez por partida, sugiere un jugador del club de la ronda.', 'Eliminatoria: con los 11 elegidos, tu equipo entra en una eliminatoria de 4 rondas, desde los octavos. En cada partido, la puntuación draft de tu equipo se compara con la del rival: la mayor avanza, la menor cae (empate va a penaltis). Campeón = gana las 4. Los rivales se sortean según la fuerza de tu equipo: cuanto más fuerte es tu equipo, más fuerte es el rival, pero siempre hay una oportunidad real de ganar. La final es el partido más difícil.'],
     },
     options: [MF.levelOpt(), MF.timerOpt([0, 300, 180, 120])],
     preview() { return h('div', { class: 'pv-draft' }, FORMS['4-3-3'].s.map(([, x, y]) => h('b', { style: { left: x + '%', top: y + '%' } }))); },
@@ -731,7 +739,8 @@
     board.appendChild(sheet);
     paint();
     // gancho de teste (como MF._pyrLast): permite montar um time completo e rodar o mata-mata
-    MF._draftLast = { st, paint, makeKnockout: (p) => makeKnockout(st, p || pool, seed) };
+    MF._draftLast = { st, paint, makeKnockout: (p, sd) => makeKnockout(st, p || pool, sd || seed) };
+    MF._draftRate = rate; MF._draftKN = KN;
   }
   MF.rateDraft = rate;
   MF._draftForms = FORMS;
