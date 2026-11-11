@@ -444,6 +444,8 @@
         const done = ctx.finished();
         MF.clear(wrap);
         wrap.appendChild(h('div', { class: 'imp-center' }, h('span', null, labelOf(cat))));
+        // quantos jogadores certos existem hoje (aviso, não é ajuda): sempre visível, em qualquer nível
+        wrap.appendChild(h('div', { class: 'imp-count' }, good.length === 1 ? t('impOne') : t('impMany').replace('{n}', good.length)));
         ring.forEach((i, n) => {
           const p = MF.data.P[i];
           const on = st.sel.includes(i);
@@ -492,7 +494,7 @@
         paint();
         return MF.ht('impostor');
       });
-      board.appendChild(h('div', { class: 'bar' }, counter, lvl === 'easy' ? h('span', { class: 'pill' }, good.length + ' ' + t('impCount')) : null, ctx.timerEl));
+      board.appendChild(h('div', { class: 'bar' }, counter, ctx.timerEl));
       board.appendChild(wrap);
       board.appendChild(h('div', { class: 'row-btns center' }, helpBtn, confirm));
       board.appendChild(helpBtn.note);
